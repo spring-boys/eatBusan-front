@@ -1,9 +1,10 @@
-<script setup lang="ts">
+<script setup>
 // 댓글 1건 표시 컴포넌트. 스타일 값은 하드코딩하지 않고 Vuetify 컴포넌트/토큰 사용.
-import type { CommentResponse } from '../types/comment'
-
-defineProps<{ comment: CommentResponse }>()
-const emit = defineEmits<{ (e: 'delete', id: number): void }>()
+defineProps({
+  /** @type {import('../types/comment.js').CommentResponse} */
+  comment: { type: Object, required: true },
+})
+const emit = defineEmits(['delete'])
 </script>
 
 <template>

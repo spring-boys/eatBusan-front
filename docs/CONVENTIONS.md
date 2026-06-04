@@ -11,7 +11,7 @@
 |------|------|------|
 | 프레임워크 | **Vue 3** (`<script setup>` Composition API) | Options API 금지 |
 | 빌드 | **Vite** | |
-| 언어 | **TypeScript** | `any` 지양, API 응답은 반드시 타입 정의 |
+| 언어 | **JavaScript** (ESM) | 타입은 JSDoc(`@typedef`)로 표기. 응답/요청 형태는 `types/`에 JSDoc typedef로 정의 |
 | UI 라이브러리 | **Vuetify** | 버튼/입력/카드 등은 직접 만들지 말고 Vuetify 컴포넌트 사용 |
 | 상태관리 | **Pinia** | 전역 상태만. 컴포넌트 로컬 상태는 `ref`/`reactive` |
 | 라우팅 | **Vue Router** | |

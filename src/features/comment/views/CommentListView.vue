@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup>
 // 댓글 목록 + 작성 페이지 (기능 1세트의 레퍼런스).
 // 패턴: store에서 상태/액션을 가져오고, 로딩/에러/빈 상태를 모두 처리한다.
 import { onMounted, ref } from 'vue'

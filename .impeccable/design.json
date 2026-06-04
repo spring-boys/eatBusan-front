@@ -1,0 +1,134 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-06-04T00:00:00.000Z",
+  "title": "Design System: eatBusan",
+  "extensions": {
+    "colorMeta": {
+      "primary": { "role": "primary", "displayName": "바다 블루 (Coastal Blue)", "canonical": "#0277BD", "tonalRamp": ["#012c47", "#013a5e", "#01477a", "#015794", "#0277bd", "#2f93cf", "#5fb0de", "#9ccfec", "#d6ebf7"] },
+      "primary-deep": { "role": "primary", "displayName": "딥 타이드 (Deep Tide)", "canonical": "#01579B", "tonalRamp": ["#011d34", "#012747", "#01345e", "#014277", "#01579b", "#2f74af", "#5f92c6", "#9cbadd", "#d6e3f1"] },
+      "secondary": { "role": "secondary", "displayName": "부산 코랄 (Busan Coral)", "canonical": "#FF7043", "tonalRamp": ["#5a1d0c", "#7a2810", "#9e3415", "#cd451d", "#ff7043", "#ff8c69", "#ffa78d", "#ffc4b3", "#ffe2d9"] },
+      "secondary-deep": { "role": "secondary", "displayName": "딥 코랄 (Deep Coral)", "canonical": "#E64A19", "tonalRamp": ["#511a09", "#6e240c", "#902f10", "#bb3d15", "#e64a19", "#ec6c44", "#f18f72", "#f6b3a1", "#fbd7cf"] },
+      "background": { "role": "neutral", "displayName": "캔버스 (Canvas)", "canonical": "#FAFAFA", "tonalRamp": ["#1a1a1a", "#2e2e2e", "#474747", "#6b6b6b", "#9e9e9e", "#c4c4c4", "#e0e0e0", "#f0f0f0", "#fafafa"] },
+      "surface": { "role": "neutral", "displayName": "표면 (Surface)", "canonical": "#FFFFFF", "tonalRamp": ["#1a1a1a", "#333333", "#4d4d4d", "#737373", "#a6a6a6", "#cccccc", "#e6e6e6", "#f5f5f5", "#ffffff"] },
+      "ink": { "role": "neutral", "displayName": "잉크 (Ink)", "canonical": "#1A1A1A", "tonalRamp": ["#000000", "#1a1a1a", "#333333", "#4d4d4d", "#666666", "#808080", "#999999", "#b3b3b3", "#cccccc"] },
+      "muted": { "role": "neutral", "displayName": "뮤트 (Muted)", "canonical": "#666666", "tonalRamp": ["#1a1a1a", "#333333", "#4d4d4d", "#666666", "#808080", "#999999", "#b3b3b3", "#cccccc", "#e6e6e6"] },
+      "border": { "role": "neutral", "displayName": "헤어라인 (Hairline)", "canonical": "#E0E0E0", "tonalRamp": ["#4d4d4d", "#666666", "#808080", "#999999", "#b3b3b3", "#cccccc", "#e0e0e0", "#eeeeee", "#f7f7f7"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "페이지 최상단 제목. 한 화면에 하나 (Vuetify text-h4 bold)." },
+      "headline": { "displayName": "Headline", "purpose": "섹션 제목 (Vuetify text-h6)." },
+      "title": { "displayName": "Title", "purpose": "카드/리스트 항목 제목." },
+      "body": { "displayName": "Body", "purpose": "본문. 산문 65–75ch." },
+      "label": { "displayName": "Label", "purpose": "버튼·칩·캡션." }
+    },
+    "shadows": [
+      { "name": "hover-lift", "value": "0 6px 16px -4px rgba(2, 119, 189, 0.18)", "purpose": "후기/기능 카드 hover 시 부드러운 들림. 바다 블루 기를 머금음." },
+      { "name": "overlay", "value": "0 10px 30px -8px rgba(0, 0, 0, 0.22)", "purpose": "다이얼로그·메뉴 등 본문 위로 떠오른 레이어." }
+    ],
+    "motion": [
+      { "name": "ease-out", "value": "cubic-bezier(0.22, 1, 0.36, 1)", "purpose": "상태 전환 기본 이징(ease-out-quint). 150–250ms." },
+      { "name": "duration-state", "value": "180ms", "purpose": "버튼·카드 상태 전환 기본 지속." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "600px" },
+      { "name": "md", "value": "960px" },
+      { "name": "lg", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "주요 행동(작성·등록·확인). 바다 블루 + 흰 텍스트.",
+      "html": "<button class=\"ds-btn-primary\">후기 등록</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; height: 44px; padding: 0 20px; background: #0277bd; color: #fff; border: none; border-radius: 4px; font: 500 0.875rem/1 'Roboto', system-ui, sans-serif; letter-spacing: 0.01em; cursor: pointer; transition: background 180ms cubic-bezier(0.22,1,0.36,1), box-shadow 180ms cubic-bezier(0.22,1,0.36,1); } .ds-btn-primary:hover { background: #01579b; } .ds-btn-primary:active { background: #014277; } .ds-btn-primary:focus-visible { outline: 2px solid #0277bd; outline-offset: 2px; } .ds-btn-primary:disabled { background: #cfd8dc; color: #90a4ae; cursor: not-allowed; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "보조 강조 행동. 코랄 + 잉크 텍스트(흰 텍스트 금지).",
+      "html": "<button class=\"ds-btn-secondary\">둘러보기</button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; height: 44px; padding: 0 20px; background: #ff7043; color: #1a1a1a; border: none; border-radius: 4px; font: 500 0.875rem/1 'Roboto', system-ui, sans-serif; letter-spacing: 0.01em; cursor: pointer; transition: background 180ms cubic-bezier(0.22,1,0.36,1); } .ds-btn-secondary:hover { background: #f4602f; } .ds-btn-secondary:active { background: #e64a19; color: #fff; } .ds-btn-secondary:focus-visible { outline: 2px solid #e64a19; outline-offset: 2px; }"
+    },
+    {
+      "name": "Outlined Button",
+      "kind": "button",
+      "refersTo": "button-outlined",
+      "description": "낮은 위계 행동·취소. 흰 배경 + 바다 블루 테두리.",
+      "html": "<button class=\"ds-btn-outlined\">취소</button>",
+      "css": ".ds-btn-outlined { display: inline-flex; align-items: center; justify-content: center; height: 44px; padding: 0 20px; background: #fff; color: #0277bd; border: 1px solid #0277bd; border-radius: 4px; font: 500 0.875rem/1 'Roboto', system-ui, sans-serif; letter-spacing: 0.01em; cursor: pointer; transition: background 180ms cubic-bezier(0.22,1,0.36,1); } .ds-btn-outlined:hover { background: rgba(2,119,189,0.06); } .ds-btn-outlined:focus-visible { outline: 2px solid #0277bd; outline-offset: 2px; }"
+    },
+    {
+      "name": "Review Card",
+      "kind": "card",
+      "refersTo": "card-outlined",
+      "description": "후기 카드. 사진이 폭을 꽉 채우고 텍스트는 아래. 기본 플랫, hover 시 들림.",
+      "html": "<article class=\"ds-card\"><div class=\"ds-card-media\" role=\"img\" aria-label=\"음식 사진\"></div><div class=\"ds-card-body\"><h3 class=\"ds-card-title\">해운대 골목 국밥</h3><p class=\"ds-card-text\">진한 국물에 수육이 푸짐. 아침에 가도 줄.</p><div class=\"ds-card-meta\"><span class=\"ds-like\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"#ff7043\"><path d=\"M12 21s-7.5-4.6-10-9.2C.3 8.7 1.9 5 5.4 5c2 0 3.4 1.2 4.6 2.7C11.2 6.2 12.6 5 14.6 5 18.1 5 19.7 8.7 22 11.8 19.5 16.4 12 21 12 21z\"/></svg>24</span><span class=\"ds-time\">2시간 전</span></div></div></article>",
+      "css": ".ds-card { display: flex; flex-direction: column; width: 280px; background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; transition: box-shadow 180ms cubic-bezier(0.22,1,0.36,1), transform 180ms cubic-bezier(0.22,1,0.36,1); } .ds-card:hover { box-shadow: 0 6px 16px -4px rgba(2,119,189,0.18); transform: translateY(-2px); } .ds-card-media { aspect-ratio: 4/3; background: linear-gradient(135deg, #9ccfec, #ffc4b3); } .ds-card-body { padding: 16px; } .ds-card-title { margin: 0 0 4px; font: 500 1rem/1.4 'Roboto', system-ui, sans-serif; color: #1a1a1a; } .ds-card-text { margin: 0 0 12px; font: 400 0.875rem/1.5 'Roboto', system-ui, sans-serif; color: #1a1a1a; } .ds-card-meta { display: flex; align-items: center; gap: 12px; font: 400 0.75rem/1 'Roboto', system-ui, sans-serif; color: #666; } .ds-like { display: inline-flex; align-items: center; gap: 4px; color: #1a1a1a; }"
+    },
+    {
+      "name": "Search / Text Input",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "댓글·검색 입력. 1px 테두리, focus 시 바다 블루.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"댓글을 입력하세요\" />",
+      "css": ".ds-input { width: 280px; height: 48px; padding: 0 16px; background: #fff; color: #1a1a1a; border: 1px solid #e0e0e0; border-radius: 4px; font: 400 1rem/1.5 'Roboto', system-ui, sans-serif; transition: border-color 180ms cubic-bezier(0.22,1,0.36,1), box-shadow 180ms cubic-bezier(0.22,1,0.36,1); } .ds-input::placeholder { color: #666; } .ds-input:focus { outline: none; border-color: #0277bd; box-shadow: 0 0 0 3px rgba(2,119,189,0.15); }"
+    },
+    {
+      "name": "Coral Chip",
+      "kind": "chip",
+      "refersTo": "button-secondary",
+      "description": "필터/태그 칩. 선택은 코랄 채움 + 잉크, 비선택은 테두리.",
+      "html": "<div class=\"ds-chips\"><button class=\"ds-chip ds-chip--on\">해운대</button><button class=\"ds-chip\">서면</button></div>",
+      "css": ".ds-chips { display: inline-flex; gap: 8px; } .ds-chip { height: 32px; padding: 0 14px; border-radius: 9999px; background: #fff; color: #1a1a1a; border: 1px solid #e0e0e0; font: 500 0.875rem/1 'Roboto', system-ui, sans-serif; cursor: pointer; transition: background 180ms cubic-bezier(0.22,1,0.36,1), border-color 180ms; } .ds-chip:hover { border-color: #ff7043; } .ds-chip--on { background: #ff7043; color: #1a1a1a; border-color: #ff7043; } .ds-chip:focus-visible { outline: 2px solid #e64a19; outline-offset: 2px; }"
+    },
+    {
+      "name": "Top App Bar",
+      "kind": "nav",
+      "refersTo": "button-primary",
+      "description": "상단 앱 바. 바다 블루 + 흰 텍스트, 좌측 타이틀이 홈 링크.",
+      "html": "<header class=\"ds-appbar\"><a class=\"ds-appbar-title\" href=\"#\">eatBusan</a></header>",
+      "css": ".ds-appbar { display: flex; align-items: center; height: 56px; padding: 0 16px; background: #0277bd; } .ds-appbar-title { font: 500 1.25rem/1 'Roboto', system-ui, sans-serif; color: #fff; text-decoration: none; cursor: pointer; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "맑은 바다 한 컷",
+    "overview": "eatBusan은 낮의 부산 해변처럼 밝고 산뜻한 화면 위에서, 사용자가 올린 음식 사진 한 컷이 주인공이 되는 시스템이다. 바다 블루(#0277BD)가 신뢰와 위치·정보의 축을 잡고, 코랄(#FF7043)이 식욕과 반응의 포인트를 찍는다. UI 자체는 조용한 무대다. 테두리·여백·플랫한 표면이 사진을 가두지 않고 받쳐주며, 색은 행동에만 쓰고 장식으로 흩뿌리지 않는다.",
+    "keyCharacteristics": [
+      "사진이 화면에서 가장 강한 요소; 크롬은 사진을 받치는 무대",
+      "밝은 표면(#FAFAFA / #FFFFFF) + 절제된 바다 블루·코랄 포인트",
+      "기본은 플랫·테두리 중심, 그림자는 상태(hover/focus)에만",
+      "모바일 우선: 한 손 도달, 최소 44px 터치 타깃",
+      "색은 행동과 상태에만, 장식 금지"
+    ],
+    "rules": [
+      { "name": "The Action-Only Color Rule", "body": "바다 블루와 코랄은 행동·선택·상태에만 쓴다. 배경을 칠하거나 섹션을 구분하려고 색을 뿌리는 것은 금지. 큰 색면이 필요하면 그 자리는 사진이 차지한다.", "section": "colors" },
+      { "name": "The Coral-Text Rule", "body": "코랄(#FF7043) 위 텍스트는 항상 잉크(#1A1A1A). 흰 텍스트가 꼭 필요하면 색을 딥 코랄(#E64A19)로 내린다. 순수 코랄 + 흰 텍스트 조합은 금지.", "section": "colors" },
+      { "name": "The One-Family Rule", "body": "Roboto 한 종으로 통일한다. 디스플레이 서체·장식 서체를 추가하지 않는다. 위계는 크기·굵기로만.", "section": "typography" },
+      { "name": "The No-Shout Rule", "body": "본문에 대문자 문장 금지. 대문자는 짧은 라벨·배지(≤4단어)에만. 제목은 34px를 넘기지 않는다.", "section": "typography" },
+      { "name": "The Flat-By-Default Rule", "body": "표면은 쉴 때 플랫하다. 그림자는 상태(hover·elevation·focus)에 대한 응답으로만 나타난다. 상시 그림자가 보이면 그 카드는 잘못 만들어진 것이다.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do 음식 사진을 화면에서 가장 큰·강한 요소로 둔다. 후기 카드는 사진이 폭을 꽉 채우게 한다.",
+      "Do 색(바다 블루·코랄)은 주요 행동·현재 선택·상태에만 쓴다.",
+      "Do 코랄 위 텍스트는 잉크(#1A1A1A)로, 흰 텍스트가 필요하면 딥 코랄(#E64A19)로 내린다.",
+      "Do 표면은 기본 플랫·1px 테두리, 그림자는 hover/focus 상태에만.",
+      "Do Roboto 한 종으로 통일하고 위계는 크기·굵기로 만든다.",
+      "Do 터치 타깃 최소 44px, 모바일 한 손 조작을 먼저 고려한다.",
+      "Do 로딩은 스켈레톤, 빈 상태는 다음 행동을 가르치는 카피로.",
+      "Do 모션은 150–250ms 상태 전환 위주. prefers-reduced-motion 대안을 둔다."
+    ],
+    "donts": [
+      "Don't 손 안 댄 Material 기본 데모 룩으로 두지 않는다 — 상시 드롭섀도, 기본 elevation, 똑같은 아이콘+제목+텍스트 카드 그리드 반복 금지.",
+      "Don't 관공서 지자체 관광 사이트식 딱딱한 정보 나열 레이아웃을 만들지 않는다.",
+      "Don't 쿠폰·배너·팝업으로 후기와 사진 사이를 끊는 커머스/배달앱 화면을 만들지 않는다.",
+      "Don't 음식 앱을 차갑고 채도 없는 B2B SaaS 톤으로 만들지 않는다.",
+      "Don't 순수 코랄(#FF7043) 위에 흰 텍스트를 올리지 않는다(대비 ~2.7:1, AA 미달).",
+      "Don't 보조 텍스트를 #666보다 더 옅게 내리지 않는다.",
+      "Don't 1px 초과 컬러 스트라이프 보더, 그라디언트 텍스트, 장식용 글래스모피즘, 모든 섹션 위 대문자 eyebrow를 쓰지 않는다.",
+      "Don't 색만으로 상태를 전달하지 않는다 — 아이콘/형태/텍스트를 함께 쓴다."
+    ]
+  }
+}

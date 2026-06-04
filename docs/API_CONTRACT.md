@@ -41,16 +41,25 @@
 | 삭제 | DELETE | `/api/posts/{postId}` | ✅ |
 
 ```jsonc
-// PostResponse (대략 — 정확한 필드는 PostResponseDto 확인)
+// PostResponse (프론트 제안 초안 — 백엔드 PostResponseDto 확정 시 동기화)
 {
   "id": 1,
   "title": "해운대 맛집",
   "content": "...",
+  "thumbnailUrl": "https://...s3.../posts/1/thumb.jpg", // 대표 이미지(없으면 null)
+  "authorNickname": "부산토박이",
+  "authorProfileUrl": "https://...",                     // 없으면 null
   "viewCount": 10,
   "commentCount": 3,
-  // memberId/placeId/작성자정보/이미지 등 ❓확인 필요
+  "likeCount": 12,
+  "liked": false,                                        // 인증 시 현재 사용자 좋아요 여부(목록선 생략 가능)
+  "createdAt": "2026-06-04T10:00:00"
+  // memberId/placeId 등 추가 필드 ❓확인 필요
 }
 ```
+
+> **목록 페이지네이션**: 프론트는 `GET /api/posts?page=1&size=8` (page 1부터)로 호출하고 **`PostResponse[]` 배열 응답**을 가정한다(댓글 목록과 동일 형태). 백엔드가 Spring `Page` 래퍼(`content`/`totalElements`/...)를 반환하면 `features/post/api/postApi.ts`의 매핑만 수정한다.
+> 프론트 타입 정의: `src/features/post/types/post.ts`.
 
 ---
 
@@ -103,13 +112,40 @@
 
 - 응답: `PostLikeResponse` (현재 상태 포함 — 토글이라 200으로 일괄 처리)
 ```jsonc
-{ /* PostLikeResponse 필드 ❓확인 필요 (liked 여부, count 등) */ }
+// 프론트 제안 초안 — 백엔드 확정 시 동기화
+{ "liked": true, "likeCount": 13 }
 ```
 
 ---
 
-## Place  ❓확인 필요
-`place/` 컨트롤러 확인 후 작성 (카카오 API 연동 포함).
+## Place  🟡 프론트 제안 초안 (백엔드/카카오 연동 확정 시 동기화)
+
+| 동작 | Method | Path | 인증 |
+|------|--------|------|------|
+| 주변 식당 목록 | GET | `/api/places` | - |
+| 식당 단건 | GET | `/api/places/{placeId}` | - |
+| 식당 후기 목록 | GET | `/api/places/{placeId}/posts` | - |
+
+```jsonc
+// PlaceResponse (프론트 제안 초안)
+{
+  "id": 1,
+  "name": "해운대 골목 돼지국밥",
+  "category": "한식",
+  "thumbnailUrl": "https://...",   // 없으면 null
+  "photos": ["https://...", "..."], // 상세용
+  "rating": 4.6,
+  "reviewCount": 182,
+  "likeCount": 142,
+  "address": "부산 해운대구 구남로 12",
+  "priceRange": "1만원 이하",
+  "lat": 35.1587,
+  "lng": 129.1601
+}
+```
+
+> 거리 정렬은 클라이언트가 현재 위치(브라우저 geolocation) 기준으로 계산한다(`src/shared/utils/geo.js`). 서버가 거리/카테고리 필터를 제공하면 쿼리로 전환.
+> 프론트 타입: `src/features/place/types/place.js`. 식당 후기는 `PostResponse[]` (후기 = Post).
 
 ---
 

@@ -4,6 +4,10 @@
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
     "types": ["vite/client"],
 
+    /* JS 혼용 허용: 일부 파일(router 등)을 .js로 둔다. 타입체크는 하지 않음 */
+    "allowJs": true,
+    "checkJs": false,
+
     /* Path alias: @ -> src (TS 6+: baseUrl 없이 paths만 사용, tsconfig 기준 상대경로) */
     "paths": {
       "@/*": ["./src/*"]
@@ -15,5 +19,5 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.js", "src/**/*.vue"]
 }

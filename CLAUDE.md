@@ -20,16 +20,16 @@ features/comment/
 ```
 
 ## 절대 규칙 (요약)
-- 스택 고정: Vue 3 `<script setup>` + TS + Vite + **Vuetify** + Pinia + Vue Router + Axios
+- 스택 고정: Vue 3 `<script setup>` + **JavaScript(ESM)** + Vite + **Vuetify** + Pinia + Vue Router + Axios
 - API 호출은 `features/<f>/api/`의 함수로만. 컴포넌트에서 axios 직접 호출 ❌
 - 스타일 값 하드코딩 ❌ — Vuetify 컴포넌트/테마 토큰 사용
-- `any` 지양, 응답/요청은 `types/`에 타입 정의
+- 타입은 JSDoc(`@typedef`)로. 응답/요청은 `types/`에 JSDoc typedef 정의
 - API 형태가 불명확하면 추측하지 말고 `docs/API_CONTRACT.md` 확인, 없으면 사용자에게 질문
 - import 경로는 `@/` 별칭 사용 (`@/shared/api/client`)
 
 ## 명령어
 - `npm run dev` — 개발 서버 (http://localhost:5173, `/api` → Spring 8081 프록시)
-- `npm run build` — 타입체크 + 빌드
+- `npm run build` — Vite 프로덕션 빌드
 - `npm run format` — Prettier 포맷
 
 ## 백엔드
