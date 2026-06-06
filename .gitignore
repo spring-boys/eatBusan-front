@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# AI 툴링(개인 환경) — 레포에는 팀용 가이드 문서만 둔다
+# (팀 AI 가이드는 AGENTS.md / CLAUDE.md / docs/AI_GUIDE.md / docs/UI_KIT.md 등으로 유지)
+.claude/
+.agents/
+.impeccable/
