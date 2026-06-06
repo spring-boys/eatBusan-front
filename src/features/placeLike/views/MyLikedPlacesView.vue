@@ -1,0 +1,120 @@
+<script setup>
+// 좋아요한 맛집 — 목업(UI only). 샘플 데이터로 레이아웃만 보여준다.
+// TODO(AI 연동): features/placeLike/store/placeLikeStore.js 의 loadMyLikes() 로 목록 로드,
+//   하트 토글은 unlike(placeId). 커서(lastId) 더보기는 loadMore(). loading/error/빈 상태 처리.
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+// 목업 샘플 (PlaceLikeDetail 형태)
+const likes = [
+  { placeLikeId: 3, placeId: 11, name: '해운대 암소갈비집', address: '해운대구 중동', likeCnt: 320 },
+  { placeLikeId: 2, placeId: 7, name: '광안리 민락수변 회센터', address: '수영구 민락동', likeCnt: 154 },
+  { placeLikeId: 1, placeId: 4, name: '전포 카페 노을', address: '부산진구 전포동', likeCnt: 98 },
+]
+</script>
+
+<template>
+  <div class="mylikes">
+    <header class="sub-hd">
+      <button class="sub-hd__back" type="button" aria-label="뒤로" @click="router.back()">
+        <v-icon icon="mdi-chevron-left" size="24" />
+      </button>
+      <h1 class="sub-hd__title">좋아요한 맛집</h1>
+    </header>
+
+    <div v-if="likes.length === 0" class="empty">
+      <v-icon icon="mdi-heart-outline" size="40" class="empty__ic" />
+      <p class="empty__t">아직 좋아요한 맛집이 없어요</p>
+      <v-btn color="primary" variant="tonal" rounded="lg" size="small" @click="router.push('/')">
+        맛집 둘러보기
+      </v-btn>
+    </div>
+
+    <ul v-else class="list">
+      <li v-for="p in likes" :key="p.placeLikeId">
+        <router-link :to="`/places/${p.placeId}`" class="row">
+          <div class="row__info">
+            <h3 class="row__name">{{ p.name }}</h3>
+            <p class="row__addr">{{ p.address }}</p>
+          </div>
+          <span class="row__like">
+            <v-icon icon="mdi-heart" size="15" />{{ p.likeCnt }}
+          </span>
+        </router-link>
+      </li>
+    </ul>
+  </div>
+</template>
+
+<style scoped>
+.sub-hd {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 0 16px;
+}
+.sub-hd__back {
+  border: 0;
+  background: none;
+  cursor: pointer;
+  padding: 4px;
+  margin-left: -8px;
+  color: rgba(33, 26, 23, 0.75);
+}
+.sub-hd__title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: rgb(var(--v-theme-on-surface));
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgb(var(--v-theme-surface));
+  border-radius: 16px;
+  padding: 14px 16px;
+  box-shadow: var(--depth-1);
+  text-decoration: none;
+  color: inherit;
+}
+.row__info {
+  flex: 1;
+  min-width: 0;
+}
+.row__name {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: rgb(var(--v-theme-on-surface));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.row__addr {
+  margin: 3px 0 0;
+  font-size: 13px;
+  color: rgba(33, 26, 23, 0.5);
+}
+.row__like {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--rose);
+}
+</style>

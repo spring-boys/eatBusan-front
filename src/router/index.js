@@ -25,6 +25,45 @@ const router = createRouter({
       component: () => import('@/features/post/views/PostFeedView.vue'),
     },
     {
+      path: '/login',
+      name: 'login',
+      // 로그인 (전체화면 — 상단바/하단탭 숨김)
+      meta: { chrome: false },
+      component: () => import('@/features/auth/views/LoginView.vue'),
+    },
+    {
+      path: '/signup',
+      name: 'signup',
+      // 회원가입 (전체화면 — 상단바/하단탭 숨김)
+      meta: { chrome: false },
+      component: () => import('@/features/auth/views/SignupView.vue'),
+    },
+    {
+      path: '/my',
+      name: 'my',
+      // 마이페이지 (목업)
+      component: () => import('@/features/user/views/MyPageView.vue'),
+    },
+    {
+      path: '/my/posts',
+      name: 'my-posts',
+      // 내가 쓴 후기 (목업)
+      component: () => import('@/features/post/views/MyPostsView.vue'),
+    },
+    {
+      path: '/my/likes',
+      name: 'my-likes',
+      // 좋아요한 맛집 (목업)
+      component: () => import('@/features/placeLike/views/MyLikedPlacesView.vue'),
+    },
+    {
+      path: '/write',
+      name: 'write',
+      // 후기 쓰기 (목업, 전체화면)
+      meta: { chrome: false },
+      component: () => import('@/features/post/views/WritePostView.vue'),
+    },
+    {
       path: '/comments',
       name: 'comments',
       // 댓글 기능 템플릿 데모 (레퍼런스 화면)

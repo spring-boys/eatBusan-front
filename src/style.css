@@ -1,21 +1,28 @@
 /* 전역 기본 스타일. 색/폰트/간격 토큰의 기준은 docs/DESIGN.md.
-   글래스(애플풍)가 살아나도록 은은한 컬러 그라디언트 배경 + Pretendard 폰트. */
+   모바일 웹앱(폰 셸) 룩 — 가운데 폰 폭 패널 + 바깥은 차분한 중립 배경. */
 
 :root {
   --app-font:
     'Pretendard Variable', Pretendard, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   color-scheme: light;
 
-  /* 재사용 글래스 토큰 */
-  --glass-bg: rgba(255, 255, 255, 0.62);
-  --glass-bg-strong: rgba(255, 255, 255, 0.78);
-  --glass-blur: saturate(180%) blur(20px);
-  --glass-border: rgba(255, 255, 255, 0.6);
+  /* 브랜드 토큰 (가넷 + 허니 + 로즈) */
+  --brand: #b0234a; /* 가넷 */
+  --brand-deep: #8e1b3a;
+  --brand-tint: rgba(176, 35, 74, 0.1);
+  --brand-tint-strong: rgba(176, 35, 74, 0.16);
+  --honey: #e8a53d;
+  --rose: #ff3d6a;
+  --ink: #211a17;
+
+  /* 헤더 글래스 (배경색 틴트, 흰색 아님) */
+  --glass-bg: rgba(250, 246, 242, 0.72);
+  --glass-bg-strong: rgba(250, 246, 242, 0.86);
+  --glass-blur: saturate(150%) blur(18px);
+
   /* 입체 카드 그림자 (앰비언트 + 키) */
-  --depth-1:
-    0 1px 2px rgba(16, 24, 40, 0.04), 0 6px 16px -10px rgba(16, 24, 40, 0.14);
-  --depth-2:
-    0 2px 6px rgba(16, 24, 40, 0.05), 0 16px 32px -14px rgba(16, 24, 40, 0.22);
+  --depth-1: 0 1px 2px rgba(33, 26, 23, 0.04), 0 6px 16px -10px rgba(33, 26, 23, 0.12);
+  --depth-2: 0 2px 6px rgba(33, 26, 23, 0.05), 0 16px 32px -14px rgba(33, 26, 23, 0.18);
 }
 
 html,
@@ -28,16 +35,21 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* 앰비언트 컬러 배경: 글래스 위로 비치는 은은한 블루/코랄 빛 + 깊이 */
+/* 폰 셸 바깥 배경(데스크탑에서 보이는 무대). 차분한 중립 + 미세 가넷 글로우 */
 .v-application {
   font-family: var(--app-font) !important;
   letter-spacing: -0.01em;
   background:
-    radial-gradient(46% 32% at 12% -4%, rgba(242, 84, 27, 0.16), transparent 72%),
-    radial-gradient(50% 36% at 104% 8%, rgba(255, 77, 109, 0.13), transparent 70%),
-    radial-gradient(60% 42% at 50% 108%, rgba(255, 179, 0, 0.12), transparent 72%),
-    linear-gradient(180deg, #fbf8f5 0%, #f4ede7 100%) !important;
+    radial-gradient(60% 50% at 50% -8%, rgba(176, 35, 74, 0.06), transparent 70%),
+    linear-gradient(180deg, #efe9e4 0%, #e7e0da 100%) !important;
   background-attachment: fixed !important;
+}
+
+/* 모바일에서는 디바이스 셸이 화면 전체를 채우므로 바깥 배경이 보이지 않음 */
+@media (max-width: 600px) {
+  .v-application {
+    background: rgb(var(--v-theme-background)) !important;
+  }
 }
 
 * {

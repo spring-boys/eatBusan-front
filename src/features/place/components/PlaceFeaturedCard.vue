@@ -1,10 +1,12 @@
 <script setup>
-// 가장 가까운 #1 식당을 크게 띄우는 편집형 히어로 카드. 균일한 리스트를 깨는 포컬 포인트.
+// 가장 인기 있는 #1 식당을 크게 띄우는 편집형 히어로 카드.
 import { formatDistance } from '@/shared/utils/geo'
 
-defineProps({
+const props = defineProps({
   /** @type {import('../types/place.js').PlaceResponse} */
   place: { type: Object, required: true },
+  /** 카드 좌상단 태그 텍스트. null이면 숨김 */
+  tagText: { type: String, default: null },
 })
 </script>
 
@@ -16,15 +18,15 @@ defineProps({
     </div>
     <div class="feat__scrim"></div>
 
-    <span v-if="place.distanceM != null" class="feat__tag">
-      <v-icon icon="mdi-near-me" size="14" aria-hidden="true" />가장 가까워요 · {{ formatDistance(place.distanceM) }}
+    <span v-if="tagText" class="feat__tag">
+      {{ tagText }}
     </span>
 
     <div class="feat__body">
       <span class="feat__cat">{{ place.category }}</span>
       <h2 class="feat__name">{{ place.name }}</h2>
       <div class="feat__meta">
-        <v-icon icon="mdi-star" size="16" color="#FFC83D" aria-hidden="true" />
+        <v-icon icon="mdi-star" size="16" color="#E8A53D" aria-hidden="true" />
         <strong>{{ place.rating.toFixed(1) }}</strong>
         <span class="feat__rev">후기 {{ place.reviewCount }}</span>
       </div>
@@ -42,8 +44,11 @@ defineProps({
   color: #fff;
   box-shadow:
     0 2px 6px rgba(31, 26, 23, 0.06),
-    0 22px 40px -20px rgba(242, 84, 27, 0.45);
+    0 22px 40px -20px rgba(176, 35, 74, 0.45);
   transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.feat:hover {
+  transform: translateY(-2px);
 }
 .feat:active {
   transform: scale(0.985);
@@ -72,14 +77,14 @@ defineProps({
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: #f2541b;
+  background: #B0234A;
   color: #fff;
   font-size: 12.5px;
   font-weight: 800;
   letter-spacing: -0.01em;
   padding: 7px 12px;
   border-radius: 9999px;
-  box-shadow: 0 6px 14px -4px rgba(242, 84, 27, 0.6);
+  box-shadow: 0 6px 14px -4px rgba(176, 35, 74, 0.6);
 }
 .feat__body {
   position: absolute;
@@ -95,7 +100,7 @@ defineProps({
 }
 .feat__name {
   margin: 2px 0 6px;
-  font-size: clamp(24px, 7vw, 30px);
+  font-size: clamp(22px, 6vw, 30px);
   font-weight: 800;
   line-height: 1.12;
   letter-spacing: -0.035em;
@@ -117,8 +122,7 @@ defineProps({
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .feat {
-    transition: none;
-  }
+  .feat { transition: none; }
+  .feat:hover { transform: none; }
 }
 </style>

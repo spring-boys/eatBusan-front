@@ -1,10 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 226 64" fill="none" role="img" aria-label="eatbusan 로고">
-  <!-- 아이콘 마크 -->
-  <g transform="translate(2 10) scale(0.6875)">
-    <rect width="64" height="64" rx="16" fill="#F2541B" />
-    <text x="32" y="34" text-anchor="middle" dominant-baseline="central" fill="#ffffff" font-family="'Pretendard Variable', Pretendard, system-ui, sans-serif" font-size="42" font-weight="800" letter-spacing="-1">e</text>
-  </g>
-
-  <!-- 워드마크 -->
-  <text x="58" y="42" font-family="'Pretendard Variable', Pretendard, system-ui, sans-serif" font-size="30" font-weight="800" letter-spacing="-1.8" fill="#1F1A17">eatbusan</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 82" fill="none" role="img" aria-label="eatBusan 로고">
+  <!-- 워드마크: eat(잉크) + Busan(가넷) -->
+  <text x="10" y="50" font-family="'Pretendard Variable', Pretendard, system-ui, sans-serif" font-size="46" font-weight="800" letter-spacing="-2"><tspan fill="#211A17">eat</tspan><tspan fill="#B0234A">Busan</tspan></text>
+  <!-- 단어 전체 아래로 흐르는 곡선 -->
+  <path d="M14 67 C70 80 140 80 196 65" stroke="#B0234A" stroke-width="6" stroke-linecap="round" />
 </svg>

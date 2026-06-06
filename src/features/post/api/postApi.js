@@ -4,6 +4,7 @@ import { apiClient } from '@/shared/api/client'
 
 /** @typedef {import('../types/post.js').PostResponse} PostResponse */
 /** @typedef {import('../types/post.js').PostLikeResponse} PostLikeResponse */
+/** @typedef {import('../types/post.js').PostRequest} PostRequest */
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true'
 
@@ -34,4 +35,44 @@ export async function toggleLike(postId) {
   }
   const { data } = await apiClient.post(`/posts/${postId}/likes`)
   return data
+}
+
+/**
+ * 후기 단건 조회
+ * @param {number} postId
+ * @returns {Promise<PostResponse>}
+ */
+export async function fetchPost(postId) {
+  const { data } = await apiClient.get(`/posts/${postId}`)
+  return data
+}
+
+/**
+ * 후기 작성 (인증 필요)
+ * @param {PostRequest} body
+ * @returns {Promise<PostResponse>}
+ */
+export async function createPost(body) {
+  const { data } = await apiClient.post('/posts', body)
+  return data
+}
+
+/**
+ * 후기 수정 (인증 필요)
+ * @param {number} postId
+ * @param {PostRequest} body
+ * @returns {Promise<PostResponse>}
+ */
+export async function updatePost(postId, body) {
+  const { data } = await apiClient.patch(`/posts/${postId}`, body)
+  return data
+}
+
+/**
+ * 후기 삭제 (인증 필요)
+ * @param {number} postId
+ * @returns {Promise<void>}
+ */
+export async function deletePost(postId) {
+  await apiClient.delete(`/posts/${postId}`)
 }

@@ -16,6 +16,7 @@
  * @property {number} lat
  * @property {number} lng
  * @property {number} [distanceM]     클라이언트에서 현재 위치 기준 계산해 채움
+ * @property {string} [district]      부산 구/군 단위. 예: "해운대구", "기장군"
  */
 
 export {}

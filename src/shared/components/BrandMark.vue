@@ -1,29 +1,36 @@
 <script setup>
-// eatBusan 앱 마크 (인라인 SVG). 플랫 탱저린 타일 + 헤비 'e' 한 글자.
-// 글자는 폰트로 렌더하므로 손으로 그린 패스처럼 깨질 일이 없다.
+// eatBusan 워드마크 로크업 (인라인 SVG).
+// "eatBusan" 글자 아래로 가넷 곡선이 흐른다. (혓바닥 모티프는 제거됨.)
 </script>
 
 <template>
-  <svg viewBox="0 0 64 64" fill="none" role="img" aria-label="eatbusan" class="bm">
-    <rect width="64" height="64" rx="16" fill="#F2541B" />
+  <svg viewBox="0 0 300 82" fill="none" role="img" aria-label="eatBusan" class="bm">
+    <!-- 워드마크: eat(잉크) + Busan(가넷) -->
     <text
-      x="32"
-      y="34"
-      text-anchor="middle"
-      dominant-baseline="central"
-      fill="#ffffff"
+      x="10"
+      y="50"
       font-family="'Pretendard Variable', Pretendard, system-ui, sans-serif"
-      font-size="42"
+      font-size="46"
       font-weight="800"
-      letter-spacing="-1"
+      letter-spacing="-2"
     >
-      e
+      <tspan fill="#211A17">eat</tspan><tspan fill="#B0234A">Busan</tspan>
     </text>
+
+    <!-- 단어 전체 아래로 흐르는 곡선 -->
+    <path
+      d="M14 67 C70 80 140 80 196 65"
+      stroke="#B0234A"
+      stroke-width="6"
+      stroke-linecap="round"
+    />
   </svg>
 </template>
 
 <style scoped>
 .bm {
   display: block;
+  height: 100%;
+  width: auto;
 }
 </style>

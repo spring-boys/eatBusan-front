@@ -1,11 +1,23 @@
-// 식당 리스트 전역 상태 (Pinia). 현재 위치 기반 거리 정렬 + 카테고리 필터.
+// 식당 리스트 전역 상태 (Pinia). 위치 기반(내 주변) + 지역별(구/군) 두 모드 지원.
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import * as placeApi from '../api/placeApi'
 import { BUSAN_CENTER, getCurrentPosition, haversineMeters } from '@/shared/utils/geo'
 
-export const ALL_CATEGORY = '전체'
-export const CATEGORIES = ['전체', '한식', '카페·디저트', '회·해산물', '고기·구이', '분식']
+export const ALL_DISTRICT = '전체'
+
+export const DISTRICTS = [
+  '전체',
+  '중구', '서구', '동구', '영도구',
+  '부산진구', '동래구', '남구', '북구',
+  '해운대구', '사하구', '금정구', '강서구',
+  '연제구', '수영구', '사상구', '기장군',
+]
+
+/** 지역별 모드 인기순 점수 */
+function popularityScore(p) {
+  return p.rating * Math.log(p.reviewCount + 1)
+}
 
 export const usePlaceListStore = defineStore('placeList', () => {
   /** @type {import('vue').Ref<import('../types/place.js').PlaceResponse[]>} */
@@ -16,11 +28,12 @@ export const usePlaceListStore = defineStore('placeList', () => {
   /** @type {import('vue').Ref<{ lat: number, lng: number } | null>} */
   const location = ref(null)
   const locating = ref(false)
-  const usingFallback = ref(false) // 위치 권한 거부 → 부산 도심 기준
+  const usingFallback = ref(false)
 
-  const category = ref(ALL_CATEGORY)
+  /** @type {import('vue').Ref<'nearby'|'district'>} */
+  const mode = ref('nearby')
+  const district = ref(ALL_DISTRICT)
 
-  /** 현재 위치 조회 (실패 시 부산 도심으로 폴백) */
   async function locate() {
     locating.value = true
     try {
@@ -34,7 +47,6 @@ export const usePlaceListStore = defineStore('placeList', () => {
     }
   }
 
-  /** 식당 목록 로드 */
   async function load() {
     loading.value = true
     error.value = null
@@ -47,30 +59,36 @@ export const usePlaceListStore = defineStore('placeList', () => {
     }
   }
 
-  /** 최초 진입: 위치 → 목록 */
   async function init() {
     if (places.value.length > 0) return
     await locate()
     await load()
   }
 
-  function setCategory(next) {
-    category.value = next
+  function setMode(next) {
+    mode.value = next
   }
 
-  /** 거리 계산 + 카테고리 필터 + 가까운 순 정렬 */
+  function setDistrict(next) {
+    district.value = next
+  }
+
   const visiblePlaces = computed(() => {
     const loc = location.value
     let list = places.value.map((p) => ({
       ...p,
       distanceM: loc ? haversineMeters(loc.lat, loc.lng, p.lat, p.lng) : undefined,
     }))
-    if (category.value !== ALL_CATEGORY) {
-      list = list.filter((p) => p.category === category.value)
+
+    if (mode.value === 'nearby') {
+      if (loc) list = [...list].sort((a, b) => (a.distanceM ?? 0) - (b.distanceM ?? 0))
+    } else {
+      if (district.value !== ALL_DISTRICT) {
+        list = list.filter((p) => p.district === district.value)
+      }
+      list = [...list].sort((a, b) => popularityScore(b) - popularityScore(a))
     }
-    if (loc) {
-      list = [...list].sort((a, b) => (a.distanceM ?? 0) - (b.distanceM ?? 0))
-    }
+
     return list
   })
 
@@ -81,11 +99,13 @@ export const usePlaceListStore = defineStore('placeList', () => {
     location,
     locating,
     usingFallback,
-    category,
+    mode,
+    district,
     visiblePlaces,
     locate,
     load,
     init,
-    setCategory,
+    setMode,
+    setDistrict,
   }
 })

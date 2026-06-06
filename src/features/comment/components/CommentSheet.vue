@@ -50,6 +50,8 @@ function removeMine(id) {
 <template>
   <v-bottom-sheet
     :model-value="modelValue"
+    attach="#app-shell"
+    contained
     @update:model-value="emit('update:modelValue', $event)"
   >
     <div class="sheet">

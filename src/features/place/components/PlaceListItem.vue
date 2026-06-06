@@ -5,8 +5,10 @@ import { formatDistance } from '@/shared/utils/geo'
 defineProps({
   /** @type {import('../types/place.js').PlaceResponse} */
   place: { type: Object, required: true },
-  /** 가까운 순 순위 (위치 정렬일 때만 표시). null이면 숨김 */
+  /** 순위 번호. null이면 숨김 */
   rank: { type: Number, default: null },
+  /** 거리 표시 여부 (내 주변 모드에서만 true) */
+  showDistance: { type: Boolean, default: true },
 })
 </script>
 
@@ -24,16 +26,17 @@ defineProps({
     <div class="place__info">
       <h3 class="place__name">{{ place.name }}</h3>
       <div class="place__rating">
-        <v-icon icon="mdi-star" size="15" color="#FFB300" aria-hidden="true" />
+        <v-icon icon="mdi-star" size="15" color="#E8A53D" aria-hidden="true" />
         <span class="place__score">{{ place.rating.toFixed(1) }}</span>
         <span class="place__rev">후기 {{ place.reviewCount }}</span>
         <span class="place__cat">· {{ place.category }}</span>
       </div>
       <div class="place__meta">
-        <span v-if="place.distanceM != null" class="place__dist">
+        <span v-if="showDistance && place.distanceM != null" class="place__dist">
           <v-icon icon="mdi-map-marker" size="13" aria-hidden="true" />{{ formatDistance(place.distanceM) }}
         </span>
-        <span class="place__addr">{{ place.address }}</span>
+        <span v-if="!showDistance && place.district" class="place__district">{{ place.district }}</span>
+        <span class="place__addr">{{ place.address.replace(/^부산 [^\s]+ /, '') }}</span>
       </div>
     </div>
 
@@ -45,8 +48,8 @@ defineProps({
 .place {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 14px 16px;
+  gap: 12px;
+  padding: 12px 14px;
   background: #ffffff;
   border-radius: 18px;
   box-shadow: 0 1px 2px rgba(31, 26, 23, 0.05);
@@ -66,22 +69,22 @@ defineProps({
 
 .place__rank {
   flex: 0 0 auto;
-  width: 22px;
+  width: 16px;
   text-align: center;
-  font-size: 19px;
+  font-size: 16px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.04em;
   color: rgba(31, 26, 23, 0.28);
 }
 .place__rank--top {
-  color: #f2541b;
+  color: #B0234A;
 }
 
 .place__thumb {
-  flex: 0 0 92px;
-  width: 92px;
-  height: 92px;
+  flex: 0 0 76px;
+  width: 76px;
+  height: 76px;
   border-radius: 14px;
   overflow: hidden;
   background: rgba(31, 26, 23, 0.04);
@@ -111,24 +114,37 @@ defineProps({
   display: flex;
   align-items: center;
   gap: 4px;
-  margin-top: 5px;
-  font-size: 13.5px;
+  margin-top: 4px;
+  font-size: 13px;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
 }
 .place__score {
+  flex: none;
   font-weight: 800;
   color: rgb(var(--v-theme-on-surface));
 }
-.place__rev,
+.place__rev {
+  flex: none;
+  color: rgba(31, 26, 23, 0.5);
+}
 .place__cat {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   color: rgba(31, 26, 23, 0.5);
 }
 .place__meta {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-top: 5px;
-  font-size: 13.5px;
+  margin-top: 4px;
+  font-size: 13px;
   min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
 }
 .place__dist {
   display: inline-flex;
@@ -136,11 +152,21 @@ defineProps({
   gap: 1px;
   flex: none;
   font-weight: 800;
-  color: #f2541b;
+  color: #B0234A;
+}
+.place__district {
+  flex: none;
+  font-size: 12px;
+  font-weight: 700;
+  color: #B0234A;
+  background: rgba(176, 35, 74, 0.1);
+  padding: 2px 7px;
+  border-radius: 9999px;
 }
 .place__addr {
+  flex: 1 1 auto;
+  min-width: 0;
   color: rgba(31, 26, 23, 0.42);
-  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }

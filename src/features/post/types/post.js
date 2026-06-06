@@ -22,4 +22,14 @@
  * @property {number} likeCount
  */
 
+/**
+ * 후기 작성/수정 요청 (백엔드 PostRequireDto)
+ * @typedef {Object} PostRequest
+ * @property {number} userId
+ * @property {number} placeId
+ * @property {string} email
+ * @property {string} title
+ * @property {string} content
+ */
+
 export {}

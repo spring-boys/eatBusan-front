@@ -11,18 +11,18 @@ const minutesAgo = (m) => new Date(Date.now() - m * 60_000).toISOString()
 
 /** @type {PlaceResponse[]} */
 const PLACES = [
-  { id: 1, name: '해운대 골목 돼지국밥', category: '한식', thumbnailUrl: photo('gukbap'), rating: 4.6, reviewCount: 182, likeCount: 142, address: '부산 해운대구 구남로 12', priceRange: '1만원 이하', lat: 35.1587, lng: 129.1601 },
-  { id: 2, name: '광안리 살얼음 밀면', category: '한식', thumbnailUrl: photo('milmyeon'), rating: 4.4, reviewCount: 95, likeCount: 97, address: '부산 수영구 광안해변로 197', priceRange: '1만원 이하', lat: 35.1532, lng: 129.1188 },
-  { id: 3, name: '서면 불막창 곱창', category: '고기·구이', thumbnailUrl: photo('gopchang'), rating: 4.7, reviewCount: 311, likeCount: 305, address: '부산 부산진구 서면로68번길 23', priceRange: '2~3만원대', lat: 35.1576, lng: 129.0593 },
-  { id: 4, name: '전포 카페거리 티라미수', category: '카페·디저트', thumbnailUrl: photo('tiramisu'), rating: 4.5, reviewCount: 76, likeCount: 73, address: '부산 부산진구 전포대로209번길 16', priceRange: '1~2만원대', lat: 35.1561, lng: 129.0648 },
-  { id: 5, name: '자갈치 활어회 센터', category: '회·해산물', thumbnailUrl: photo('hoe'), rating: 4.3, reviewCount: 210, likeCount: 211, address: '부산 중구 자갈치해안로 52', priceRange: '3만원대 이상', lat: 35.0966, lng: 129.0306 },
-  { id: 6, name: '남포동 비빔당면', category: '분식', thumbnailUrl: photo('dangmyeon'), rating: 4.2, reviewCount: 54, likeCount: 51, address: '부산 중구 비프광장로 31', priceRange: '1만원 이하', lat: 35.0978, lng: 129.0264 },
-  { id: 7, name: '기장 멸치쌈밥 정식', category: '한식', thumbnailUrl: photo('myeolchi'), rating: 4.6, reviewCount: 121, likeCount: 118, address: '부산 기장군 기장읍 기장해안로 1', priceRange: '1~2만원대', lat: 35.2445, lng: 129.2223 },
-  { id: 8, name: '흰여울 오션뷰 브런치', category: '카페·디저트', thumbnailUrl: photo('brunch'), rating: 4.5, reviewCount: 188, likeCount: 187, address: '부산 영도구 흰여울길 17', priceRange: '1~2만원대', lat: 35.0788, lng: 129.0455 },
-  { id: 9, name: '온천장 30년 노포 막창', category: '고기·구이', thumbnailUrl: photo('makchang'), rating: 4.4, reviewCount: 88, likeCount: 88, address: '부산 동래구 온천천로 365', priceRange: '2~3만원대', lat: 35.2189, lng: 129.0846 },
-  { id: 10, name: '대연동 매운떡볶이', category: '분식', thumbnailUrl: photo('tteokbokki'), rating: 4.1, reviewCount: 63, likeCount: 64, address: '부산 남구 유엔평화로 16', priceRange: '1만원 이하', lat: 35.1318, lng: 129.0921 },
-  { id: 11, name: '송정 해변 물회', category: '회·해산물', thumbnailUrl: photo('mulhoe'), rating: 4.5, reviewCount: 176, likeCount: 176, address: '부산 해운대구 송정해변로 62', priceRange: '1~2만원대', lat: 35.1785, lng: 129.1996 },
-  { id: 12, name: '동래 할매 해물파전', category: '한식', thumbnailUrl: photo('pajeon'), rating: 4.7, reviewCount: 240, likeCount: 243, address: '부산 동래구 명륜로94번길 9-1', priceRange: '1~2만원대', lat: 35.2056, lng: 129.0843 },
+  { id: 1, name: '해운대 골목 돼지국밥', category: '한식', district: '해운대구', thumbnailUrl: photo('gukbap'), rating: 4.6, reviewCount: 182, likeCount: 142, address: '부산 해운대구 구남로 12', priceRange: '1만원 이하', lat: 35.1587, lng: 129.1601 },
+  { id: 2, name: '광안리 살얼음 밀면', category: '한식', district: '수영구', thumbnailUrl: photo('milmyeon'), rating: 4.4, reviewCount: 95, likeCount: 97, address: '부산 수영구 광안해변로 197', priceRange: '1만원 이하', lat: 35.1532, lng: 129.1188 },
+  { id: 3, name: '서면 불막창 곱창', category: '고기·구이', district: '부산진구', thumbnailUrl: photo('gopchang'), rating: 4.7, reviewCount: 311, likeCount: 305, address: '부산 부산진구 서면로68번길 23', priceRange: '2~3만원대', lat: 35.1576, lng: 129.0593 },
+  { id: 4, name: '전포 카페거리 티라미수', category: '카페·디저트', district: '부산진구', thumbnailUrl: photo('tiramisu'), rating: 4.5, reviewCount: 76, likeCount: 73, address: '부산 부산진구 전포대로209번길 16', priceRange: '1~2만원대', lat: 35.1561, lng: 129.0648 },
+  { id: 5, name: '자갈치 활어회 센터', category: '회·해산물', district: '중구', thumbnailUrl: photo('hoe'), rating: 4.3, reviewCount: 210, likeCount: 211, address: '부산 중구 자갈치해안로 52', priceRange: '3만원대 이상', lat: 35.0966, lng: 129.0306 },
+  { id: 6, name: '남포동 비빔당면', category: '분식', district: '중구', thumbnailUrl: photo('dangmyeon'), rating: 4.2, reviewCount: 54, likeCount: 51, address: '부산 중구 비프광장로 31', priceRange: '1만원 이하', lat: 35.0978, lng: 129.0264 },
+  { id: 7, name: '기장 멸치쌈밥 정식', category: '한식', district: '기장군', thumbnailUrl: photo('myeolchi'), rating: 4.6, reviewCount: 121, likeCount: 118, address: '부산 기장군 기장읍 기장해안로 1', priceRange: '1~2만원대', lat: 35.2445, lng: 129.2223 },
+  { id: 8, name: '흰여울 오션뷰 브런치', category: '카페·디저트', district: '영도구', thumbnailUrl: photo('brunch'), rating: 4.5, reviewCount: 188, likeCount: 187, address: '부산 영도구 흰여울길 17', priceRange: '1~2만원대', lat: 35.0788, lng: 129.0455 },
+  { id: 9, name: '온천장 30년 노포 막창', category: '고기·구이', district: '동래구', thumbnailUrl: photo('makchang'), rating: 4.4, reviewCount: 88, likeCount: 88, address: '부산 동래구 온천천로 365', priceRange: '2~3만원대', lat: 35.2189, lng: 129.0846 },
+  { id: 10, name: '대연동 매운떡볶이', category: '분식', district: '남구', thumbnailUrl: photo('tteokbokki'), rating: 4.1, reviewCount: 63, likeCount: 64, address: '부산 남구 유엔평화로 16', priceRange: '1만원 이하', lat: 35.1318, lng: 129.0921 },
+  { id: 11, name: '송정 해변 물회', category: '회·해산물', district: '해운대구', thumbnailUrl: photo('mulhoe'), rating: 4.5, reviewCount: 176, likeCount: 176, address: '부산 해운대구 송정해변로 62', priceRange: '1~2만원대', lat: 35.1785, lng: 129.1996 },
+  { id: 12, name: '동래 할매 해물파전', category: '한식', district: '동래구', thumbnailUrl: photo('pajeon'), rating: 4.7, reviewCount: 240, likeCount: 243, address: '부산 동래구 명륜로94번길 9-1', priceRange: '1~2만원대', lat: 35.2056, lng: 129.0843 },
 ]
 
 const NICKS = ['부산토박이', '먹킷리스트', '서면주민', '바다사랑', '디저트헌터', '야식대장', '주말미식가', '동네한바퀴']

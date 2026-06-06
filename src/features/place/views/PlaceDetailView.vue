@@ -93,7 +93,7 @@ watch(
           <span class="hero__cat">{{ place.category }}</span>
           <h1 class="hero__name">{{ place.name }}</h1>
           <div class="hero__rating">
-            <v-icon icon="mdi-star" size="17" color="#FFC83D" aria-hidden="true" />
+            <v-icon icon="mdi-star" size="17" color="#E8A53D" aria-hidden="true" />
             <strong>{{ place.rating.toFixed(1) }}</strong>
             <span class="hero__rev">후기 {{ place.reviewCount }}</span>
             <span v-if="place.priceRange" class="hero__price">· {{ place.priceRange }}</span>
@@ -306,7 +306,7 @@ watch(
   color: rgb(var(--v-theme-on-surface));
 }
 .reviews__count {
-  color: #f2541b;
+  color: #B0234A;
 }
 .reviews__list {
   display: flex;

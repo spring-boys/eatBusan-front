@@ -35,7 +35,7 @@ onMounted(() => {
     <header class="feed__head">
       <h1 class="feed__title">
         다녀온 사람들의<br />
-        진짜 <span class="feed__hl">후기<svg class="feed__ul" viewBox="0 0 120 12" preserveAspectRatio="none" aria-hidden="true"><path d="M3 8.5 C28 3.5 72 11 117 5.5" stroke="#F2541B" stroke-width="4.5" fill="none" stroke-linecap="round" /></svg></span>
+        진짜 <span class="feed__hl">후기<svg class="feed__ul" viewBox="0 0 120 12" preserveAspectRatio="none" aria-hidden="true"><path d="M3 8.5 C28 3.5 72 11 117 5.5" stroke="#B0234A" stroke-width="4.5" fill="none" stroke-linecap="round" /></svg></span>
       </h1>
       <p class="feed__sub">부산 곳곳, 사진 한 컷으로 만나는 맛집</p>
     </header>
@@ -101,7 +101,7 @@ onMounted(() => {
 }
 .feed__hl {
   position: relative;
-  color: #f2541b;
+  color: #B0234A;
   white-space: nowrap;
 }
 .feed__ul {

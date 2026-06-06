@@ -4,24 +4,24 @@ import 'vuetify/styles'
 import '@mdi/font/css/materialdesignicons.css'
 import { createVuetify } from 'vuetify'
 
-// 따뜻한 식욕 톤(탠저린/퍼시먼) 라이트 테마. 주황이 행동·식욕, 로즈가 좋아요.
-// 파랑(바다)은 의도적으로 뺐다 — 음식 앞에서 식욕을 살리고, "해안=파랑" 반사를 피한다.
+// 가넷 + 허니 라이트 테마. 와인/자두 가넷이 행동·식욕, 허니 골드가 포인트, 로즈가 좋아요.
+// 주황(탠저린)은 의도적으로 뺐다 — '테이블링' 등 주황 식당앱과 아이덴티티를 분리한다.
 const eatBusanTheme = {
   dark: false,
   colors: {
-    background: '#FBF8F5', // 웜 화이트 (크림 아님, 브랜드 주황으로 미세 틴트)
+    background: '#FAF6F2', // 따뜻한 아이보리 (크림 아님, 가넷으로 미세 틴트)
     surface: '#FFFFFF',
     'surface-bright': '#FFFFFF',
-    primary: '#F2541B', // 메인 행동 (감·노을·어묵국물 주황)
-    'primary-darken-1': '#DA4711',
-    secondary: '#FF4D6D', // 좋아요/하트 (로즈레드 — 주황 primary와 구분)
-    'secondary-darken-1': '#E83A59',
+    primary: '#B0234A', // 메인 행동 (가넷 — 와인·자두·고추장 톤)
+    'primary-darken-1': '#8E1B3A',
+    secondary: '#FF3D6A', // 좋아요/하트 (로즈 — 가넷 primary와 구분)
+    'secondary-darken-1': '#E62F58',
     success: '#15B86B',
-    warning: '#FFB300',
+    warning: '#E8A53D', // 허니 골드 (별점·포인트)
     error: '#DC2626',
-    info: '#1FA9A0', // 정보/지도·위치용 쿨 액센트 (소량)
-    'on-background': '#1F1A17',
-    'on-surface': '#1F1A17',
+    info: '#2C8C8C', // 정보/지도·위치용 쿨 액센트 (소량)
+    'on-background': '#211A17',
+    'on-surface': '#211A17',
     'on-primary': '#FFFFFF',
     'on-secondary': '#FFFFFF',
   },

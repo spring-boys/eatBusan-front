@@ -1,197 +1,216 @@
 <script setup>
-// 루트 레이아웃. 상단 브랜드 바 + 하단 탭 내비게이션 (모바일 우선).
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+// 루트 레이아웃 — iPhone 비율(393×852, 19.5:9) 디바이스 셸.
+// 셸 내부에서만 스크롤(.viewport). 상단바(로고·위치·로그인) + 하단탭(홈·둘러보기·마이페이지).
+import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import BrandMark from '@/shared/components/BrandMark.vue'
 
 const router = useRouter()
 const route = useRoute()
 
+// 로그인 등 크롬 없는 전체화면 라우트는 meta.chrome === false
+const showChrome = computed(() => route.meta.chrome !== false)
+
 const scrolled = ref(false)
-const onScroll = () => {
-  scrolled.value = window.scrollY > 4
+const onScroll = (e) => {
+  scrolled.value = e.target.scrollTop > 4
 }
-onMounted(() => window.addEventListener('scroll', onScroll, { passive: true }))
-onBeforeUnmount(() => window.removeEventListener('scroll', onScroll))
 
-// 식당 상세(/places/:id)에서도 '홈' 탭을 활성으로 본다.
-const activeTab = computed(() => (route.path.startsWith('/places') ? '/' : route.path))
+const go = (path) => router.push(path)
 
-const writeSnackbar = ref(false)
-const openWrite = () => {
-  writeSnackbar.value = true
+const isActive = (path) => {
+  if (path === '/') return route.path === '/' || route.path.startsWith('/places')
+  return route.path.startsWith(path)
 }
 </script>
 
 <template>
   <v-app>
-    <v-app-bar
-      :elevation="0"
-      color="transparent"
-      height="58"
-      class="appbar"
-      :class="{ 'appbar--scrolled': scrolled }"
-    >
-      <div class="appbar__inner">
-        <button class="brand" type="button" @click="router.push('/')" aria-label="eatbusan 홈으로">
-          <BrandMark class="brand__logo" />
-          <span class="brand__text">eatbusan</span>
+    <div id="app-shell" class="device" :class="{ 'device--bare': !showChrome }">
+      <header v-if="showChrome" class="appbar" :class="{ 'appbar--scrolled': scrolled }">
+        <button class="brand" type="button" @click="go('/')" aria-label="eatBusan 홈으로">
+          <BrandMark class="brand__mark" />
         </button>
-        <div class="appbar__loc">
-          <v-icon icon="mdi-map-marker" size="15" color="primary" aria-hidden="true" />
-          <span>부산</span>
-        </div>
-      </div>
-    </v-app-bar>
 
-    <v-main>
-      <div class="page">
+        <button class="appbar__login" type="button" @click="go('/login')">
+          <v-icon icon="mdi-account-circle-outline" size="18" />로그인
+        </button>
+      </header>
+
+      <main class="viewport" :class="{ 'viewport--bare': !showChrome }" @scroll="onScroll">
         <router-view />
-      </div>
-    </v-main>
+      </main>
 
-    <v-bottom-navigation
-      :model-value="activeTab"
-      :elevation="0"
-      color="primary"
-      height="64"
-      grow
-      bg-color="transparent"
-      class="bottomnav"
-    >
-      <v-btn value="/" @click="router.push('/')">
-        <v-icon icon="mdi-home-variant" />
-        <span class="bottomnav__label">홈</span>
-      </v-btn>
+      <nav v-if="showChrome" class="bottomnav" aria-label="주요 메뉴">
+        <button
+          class="tab"
+          type="button"
+          :class="{ 'tab--on': isActive('/') }"
+          :aria-current="isActive('/') ? 'page' : undefined"
+          @click="go('/')"
+        >
+          <v-icon :icon="isActive('/') ? 'mdi-home-variant' : 'mdi-home-variant-outline'" size="24" />
+          <span class="tab__label">홈</span>
+        </button>
 
-      <v-btn class="bottomnav__write" @click="openWrite">
-        <div class="bottomnav__fab"><v-icon icon="mdi-pencil" size="22" /></div>
-        <span class="bottomnav__label">글쓰기</span>
-      </v-btn>
+        <button
+          class="tab"
+          type="button"
+          :class="{ 'tab--on': isActive('/feed') }"
+          :aria-current="isActive('/feed') ? 'page' : undefined"
+          @click="go('/feed')"
+        >
+          <v-icon :icon="isActive('/feed') ? 'mdi-compass' : 'mdi-compass-outline'" size="24" />
+          <span class="tab__label">둘러보기</span>
+        </button>
 
-      <v-btn value="/feed" @click="router.push('/feed')">
-        <v-icon icon="mdi-image-multiple-outline" />
-        <span class="bottomnav__label">둘러보기</span>
-      </v-btn>
-    </v-bottom-navigation>
-
-    <v-snackbar
-      v-model="writeSnackbar"
-      :timeout="2400"
-      location="top"
-      rounded="pill"
-      class="toast"
-    >
-      <v-icon icon="mdi-pencil" size="18" class="mr-2" />
-      글쓰기는 곧 만나요. 조금만 기다려주세요!
-    </v-snackbar>
+        <button
+          class="tab"
+          type="button"
+          :class="{ 'tab--on': isActive('/my') }"
+          :aria-current="isActive('/my') ? 'page' : undefined"
+          @click="go('/my')"
+        >
+          <v-icon :icon="isActive('/my') ? 'mdi-account-circle' : 'mdi-account-circle-outline'" size="24" />
+          <span class="tab__label">마이페이지</span>
+        </button>
+      </nav>
+    </div>
   </v-app>
 </template>
 
 <style scoped>
-.appbar {
-  background: var(--glass-bg) !important;
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.5);
-  transition:
-    background 220ms ease,
-    box-shadow 220ms ease;
-}
-.appbar--scrolled {
-  background: var(--glass-bg-strong) !important;
-  box-shadow: 0 4px 20px -8px rgba(16, 24, 40, 0.12) !important;
-  border-bottom-color: rgba(16, 24, 40, 0.06);
-}
-.appbar__inner {
+/* iPhone 비율 디바이스 셸. 모바일=전체화면, 데스크탑=폰 모양 프레임 */
+.device {
+  position: relative;
+  display: flex;
+  flex-direction: column;
   width: 100%;
-  max-width: 640px;
+  height: 100dvh;
   margin-inline: auto;
-  padding-inline: 20px;
+  background: rgb(var(--v-theme-background));
+  overflow: hidden;
+}
+
+/* 데스크탑: 페이지 높이를 꽉 채우되 폭은 iPhone 가로세로비(9:19.5)로 derive */
+@media (min-width: 600px) {
+  .device {
+    height: 100dvh;
+    aspect-ratio: 9 / 19.5; /* iPhone 비율 */
+    width: auto;
+    min-width: 400px; /* 실제 아이폰 폭 이하로 좁아지지 않게 (낮은 화면에서 레이아웃 깨짐 방지) */
+    max-width: 100%;
+    box-shadow:
+      0 0 0 1px rgba(33, 26, 23, 0.06),
+      0 0 60px -20px rgba(33, 26, 23, 0.25);
+  }
+}
+
+/* 상단바 */
+.appbar {
+  flex: 0 0 auto;
+  height: 54px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding-inline: 16px;
+  background: rgb(var(--v-theme-background));
+  border-bottom: 1px solid transparent;
+  transition:
+    box-shadow 220ms ease,
+    border-color 220ms ease;
+  z-index: 10;
+}
+.appbar--scrolled {
+  box-shadow: 0 4px 16px -10px rgba(33, 26, 23, 0.25);
+  border-bottom-color: rgba(33, 26, 23, 0.07);
 }
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
   border: 0;
   background: none;
   padding: 0;
   cursor: pointer;
-  font-size: 21px;
-  font-weight: 800;
-  letter-spacing: -0.045em;
-  color: rgb(var(--v-theme-on-surface));
 }
-.brand__logo {
-  display: block;
-  width: 30px;
-  height: 30px;
-  border-radius: 9px;
+.brand__mark {
+  height: 24px;
 }
-.brand:active .brand__logo {
-  transform: scale(0.92);
+.brand:active .brand__mark {
+  transform: scale(0.96);
   transition: transform 120ms ease;
 }
-.appbar__loc {
+.appbar__login {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
+  border: 0;
+  cursor: pointer;
   font-size: 13px;
-  font-weight: 600;
-  color: rgba(var(--v-theme-on-surface), 0.6);
-}
-
-.page {
-  max-width: 640px;
-  margin-inline: auto;
-  padding: 16px 20px calc(20px + env(safe-area-inset-bottom));
-}
-
-.bottomnav {
-  background: var(--glass-bg-strong) !important;
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border-top: 1px solid rgba(255, 255, 255, 0.6);
-  box-shadow: 0 -6px 24px -12px rgba(16, 24, 40, 0.18);
-  padding-bottom: env(safe-area-inset-bottom);
-}
-.bottomnav__label {
-  font-size: 11px;
   font-weight: 800;
   letter-spacing: -0.02em;
-  margin-top: 2px;
+  padding: 7px 12px 7px 10px;
+  border-radius: 9999px;
+  color: var(--brand-deep);
+  background: var(--brand-tint);
+  transition: background 160ms ease;
 }
-/* 선택된 탭: 탱저린 강조 */
-.bottomnav :deep(.v-btn--selected) {
-  color: rgb(var(--v-theme-primary));
-}
-.bottomnav :deep(.v-btn--selected .v-icon) {
-  transform: translateY(-1px) scale(1.08);
-}
-/* 가운데 글쓰기: 원형 강조 버튼 */
-.bottomnav__write :deep(.v-btn__content) {
-  flex-direction: column;
-}
-.bottomnav__fab {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, #ff8a2b, #f2541b);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 1px;
-  box-shadow: 0 4px 12px -2px rgba(var(--v-theme-primary), 0.45);
+.appbar__login:hover {
+  background: var(--brand-tint-strong);
 }
 
-.toast :deep(.v-snackbar__wrapper) {
+/* 셸 내부 스크롤 영역 */
+.viewport {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding: 14px 20px calc(20px + env(safe-area-inset-bottom));
+}
+.viewport--bare {
+  padding: 0;
+}
+
+/* 하단탭 */
+.bottomnav {
+  flex: 0 0 auto;
+  height: calc(60px + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  display: flex;
   background: rgb(var(--v-theme-surface));
-  color: rgb(var(--v-theme-on-surface));
-  box-shadow: 0 8px 24px -6px rgba(var(--v-theme-on-surface), 0.18);
-  font-weight: 600;
+  border-top: 1px solid rgba(33, 26, 23, 0.07);
+  z-index: 10;
+}
+.tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  color: rgba(var(--v-theme-on-surface), 0.42);
+  transition: color 180ms ease;
+}
+.tab__label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.tab--on {
+  color: rgb(var(--v-theme-primary));
+}
+.tab--on .v-icon {
+  transform: translateY(-1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .appbar,
+  .tab,
+  .appbar__login {
+    transition: none;
+  }
 }
 </style>

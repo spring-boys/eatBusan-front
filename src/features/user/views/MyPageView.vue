@@ -1,0 +1,133 @@
+<script setup>
+// 마이페이지 — 목업(UI only). 로그인 상태/로그아웃 연동 없음(정적).
+// TODO(AI 연동): features/auth/store/authStore.js 의 isAuthenticated 로 로그인/프로필 분기,
+//   로그아웃 버튼은 auth.logout() 연결. 메뉴는 아래 목업 페이지로 이동.
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+const go = (path) => router.push(path)
+
+const menu = [
+  { icon: 'mdi-pencil-outline', label: '후기 쓰기', to: '/write' },
+  { icon: 'mdi-format-list-bulleted', label: '내가 쓴 후기', to: '/my/posts' },
+  { icon: 'mdi-heart-outline', label: '좋아요한 맛집', to: '/my/likes' },
+  { icon: 'mdi-cog-outline', label: '설정', to: null },
+]
+</script>
+
+<template>
+  <div class="my">
+    <header class="my__hd">
+      <h1 class="my__title">마이페이지</h1>
+    </header>
+
+    <section class="my__card">
+      <div class="my__avatar" aria-hidden="true">
+        <v-icon icon="mdi-emoticon-happy-outline" size="34" />
+      </div>
+      <h2 class="my__h2">로그인하고 내 맛집을 모아보세요</h2>
+      <p class="my__sub">
+        다녀온 가게에 후기를 남기고,<br />
+        좋아요한 곳을 한곳에서 다시 꺼내볼 수 있어요.
+      </p>
+      <v-btn color="primary" size="large" rounded="lg" block @click="go('/login')">
+        로그인
+      </v-btn>
+    </section>
+
+    <ul class="my__menu">
+      <li v-for="m in menu" :key="m.label">
+        <button class="row" type="button" :disabled="!m.to" @click="m.to && go(m.to)">
+          <v-icon :icon="m.icon" size="20" class="row__ic" />
+          <span class="row__t">{{ m.label }}</span>
+          <v-icon icon="mdi-chevron-right" size="20" class="row__ch" />
+        </button>
+      </li>
+    </ul>
+  </div>
+</template>
+
+<style scoped>
+.my__hd {
+  padding: 6px 2px 18px;
+}
+.my__title {
+  margin: 0;
+  font-size: clamp(26px, 8vw, 34px);
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  color: rgb(var(--v-theme-on-surface));
+}
+
+.my__card {
+  text-align: center;
+  background: rgb(var(--v-theme-surface));
+  border-radius: 22px;
+  padding: 28px 22px 24px;
+  box-shadow: var(--depth-1);
+  margin-bottom: 22px;
+}
+.my__avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  margin: 0 auto 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--brand-tint);
+  color: var(--brand);
+}
+.my__h2 {
+  margin: 0 0 8px;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: rgb(var(--v-theme-on-surface));
+}
+.my__sub {
+  margin: 0 0 20px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: rgba(33, 26, 23, 0.55);
+}
+
+.my__menu {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: rgb(var(--v-theme-surface));
+  border: 0;
+  border-radius: 16px;
+  box-shadow: var(--depth-1);
+  cursor: pointer;
+  color: rgba(33, 26, 23, 0.82);
+  text-align: left;
+}
+.row:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+.row__ic {
+  color: var(--brand);
+}
+.row__t {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.row__ch {
+  color: rgba(33, 26, 23, 0.25);
+}
+</style>
