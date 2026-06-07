@@ -1,12 +1,16 @@
 <script setup>
 // 루트 레이아웃 — iPhone 비율(393×852, 19.5:9) 디바이스 셸.
 // 셸 내부에서만 스크롤(.viewport). 상단바(로고·위치·로그인) + 하단탭(홈·둘러보기·마이페이지).
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useRoute, useRouter } from 'vue-router'
 import BrandMark from '@/shared/components/BrandMark.vue'
+import { useAuthStore } from '@/features/auth/store/authStore'
 
 const router = useRouter()
 const route = useRoute()
+const authStore = useAuthStore()
+const { isAuthenticated, displayName } = storeToRefs(authStore)
 
 // 로그인 등 크롬 없는 전체화면 라우트는 meta.chrome === false
 const showChrome = computed(() => route.meta.chrome !== false)
@@ -18,10 +22,18 @@ const onScroll = (e) => {
 
 const go = (path) => router.push(path)
 
+const goAuth = () => {
+  router.push(isAuthenticated.value ? '/my' : '/login')
+}
+
 const isActive = (path) => {
   if (path === '/') return route.path === '/' || route.path.startsWith('/places')
   return route.path.startsWith(path)
 }
+
+onMounted(() => {
+  authStore.restoreSession()
+})
 </script>
 
 <template>
@@ -32,8 +44,12 @@ const isActive = (path) => {
           <BrandMark class="brand__mark" />
         </button>
 
-        <button class="appbar__login" type="button" @click="go('/login')">
-          <v-icon icon="mdi-account-circle-outline" size="18" />로그인
+        <button class="appbar__login" type="button" @click="goAuth">
+          <v-icon
+            :icon="isAuthenticated ? 'mdi-account-circle' : 'mdi-account-circle-outline'"
+            size="18"
+          />
+          <span class="appbar__login-text">{{ isAuthenticated ? displayName : '로그인' }}</span>
         </button>
       </header>
 
@@ -49,7 +65,10 @@ const isActive = (path) => {
           :aria-current="isActive('/') ? 'page' : undefined"
           @click="go('/')"
         >
-          <v-icon :icon="isActive('/') ? 'mdi-home-variant' : 'mdi-home-variant-outline'" size="24" />
+          <v-icon
+            :icon="isActive('/') ? 'mdi-home-variant' : 'mdi-home-variant-outline'"
+            size="24"
+          />
           <span class="tab__label">홈</span>
         </button>
 
@@ -71,7 +90,10 @@ const isActive = (path) => {
           :aria-current="isActive('/my') ? 'page' : undefined"
           @click="go('/my')"
         >
-          <v-icon :icon="isActive('/my') ? 'mdi-account-circle' : 'mdi-account-circle-outline'" size="24" />
+          <v-icon
+            :icon="isActive('/my') ? 'mdi-account-circle' : 'mdi-account-circle-outline'"
+            size="24"
+          />
           <span class="tab__label">마이페이지</span>
         </button>
       </nav>
@@ -141,6 +163,7 @@ const isActive = (path) => {
   transition: transform 120ms ease;
 }
 .appbar__login {
+  max-width: 148px;
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -157,6 +180,12 @@ const isActive = (path) => {
 }
 .appbar__login:hover {
   background: var(--brand-tint-strong);
+}
+.appbar__login-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* 셸 내부 스크롤 영역 */
