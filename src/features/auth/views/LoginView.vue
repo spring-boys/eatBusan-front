@@ -1,31 +1,47 @@
 <script setup>
-// 로그인 페이지 — 목업(UI only). 전체화면, 크롬 없음(router meta.chrome=false).
-// TODO(AI 연동): submit 을 features/auth/store/authStore.js 의 login({email,password}) 으로 연결.
-//   성공 시 route.query.redirect(없으면 '/') 로 이동. 소셜 로그인은 별도 OAuth 흐름.
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+// 로그인 페이지. 전체화면, 크롬 없음(router meta.chrome=false).
+import { computed, ref } from 'vue'
+import { storeToRefs } from 'pinia'
+import { useRoute, useRouter } from 'vue-router'
 import BrandMark from '@/shared/components/BrandMark.vue'
+import { useAuthStore } from '@/features/auth/store/authStore'
 
 const router = useRouter()
+const route = useRoute()
+const authStore = useAuthStore()
+const { loading, error: authError } = storeToRefs(authStore)
 
 const email = ref('')
 const password = ref('')
 const showPw = ref(false)
-const loading = ref(false)
-const error = ref('')
+const formError = ref('')
+const error = computed(() => formError.value || authError.value || '')
 
-// 목업 동작: 실제 인증은 하지 않고 입력만 검증한다.
-function submit() {
-  error.value = ''
+function getRedirectPath() {
+  return typeof route.query.redirect === 'string' ? route.query.redirect : '/'
+}
+
+async function submit() {
+  if (loading.value) return
+
+  authStore.clearError()
+  formError.value = ''
+
   if (!email.value || !password.value) {
-    error.value = '이메일과 비밀번호를 입력해주세요.'
+    formError.value = '이메일과 비밀번호를 입력해주세요.'
     return
   }
-  error.value = '목업 화면이에요. 실제 로그인 연동은 authStore에 연결 예정입니다.'
+
+  const ok = await authStore.login({
+    email: email.value.trim(),
+    password: password.value,
+  })
+  if (ok) router.replace(getRedirectPath())
 }
 
 const comingSoon = (label) => {
-  error.value = `${label} 로그인은 준비 중이에요.`
+  authStore.clearError()
+  formError.value = `${label} 로그인은 준비 중이에요.`
 }
 </script>
 

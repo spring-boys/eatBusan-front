@@ -14,4 +14,10 @@
  * @property {string} password
  */
 
+/**
+ * 내 정보 응답 (백엔드 MemberInfoDto)
+ * @typedef {Object} MemberInfoResponse
+ * @property {string} email
+ */
+
 export {}

@@ -1,11 +1,21 @@
 <script setup>
-// 마이페이지 — 목업(UI only). 로그인 상태/로그아웃 연동 없음(정적).
-// TODO(AI 연동): features/auth/store/authStore.js 의 isAuthenticated 로 로그인/프로필 분기,
-//   로그아웃 버튼은 auth.logout() 연결. 메뉴는 아래 목업 페이지로 이동.
+// 마이페이지. 로그인 상태에 따라 사용자 정보를 표시한다.
+import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/features/auth/store/authStore'
 
 const router = useRouter()
+const authStore = useAuthStore()
+const { isAuthenticated, memberEmail, displayName } = storeToRefs(authStore)
+
 const go = (path) => router.push(path)
+const handlePrimary = async () => {
+  if (!isAuthenticated.value) {
+    go('/login')
+    return
+  }
+  await authStore.logout()
+}
 
 const menu = [
   { icon: 'mdi-pencil-outline', label: '후기 쓰기', to: '/write' },
@@ -23,15 +33,24 @@ const menu = [
 
     <section class="my__card">
       <div class="my__avatar" aria-hidden="true">
-        <v-icon icon="mdi-emoticon-happy-outline" size="34" />
+        <v-icon
+          :icon="isAuthenticated ? 'mdi-account-circle-outline' : 'mdi-emoticon-happy-outline'"
+          size="34"
+        />
       </div>
-      <h2 class="my__h2">로그인하고 내 맛집을 모아보세요</h2>
-      <p class="my__sub">
+      <h2 class="my__h2">
+        {{ isAuthenticated ? `${displayName}님` : '로그인하고 내 맛집을 모아보세요' }}
+      </h2>
+      <p v-if="isAuthenticated" class="my__sub">
+        {{ memberEmail }}<br />
+        부산 맛집 기록을 이어가보세요.
+      </p>
+      <p v-else class="my__sub">
         다녀온 가게에 후기를 남기고,<br />
         좋아요한 곳을 한곳에서 다시 꺼내볼 수 있어요.
       </p>
-      <v-btn color="primary" size="large" rounded="lg" block @click="go('/login')">
-        로그인
+      <v-btn color="primary" size="large" rounded="lg" block @click="handlePrimary">
+        {{ isAuthenticated ? '로그아웃' : '로그인' }}
       </v-btn>
     </section>
 

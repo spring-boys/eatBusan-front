@@ -6,10 +6,26 @@ import { getAccessToken, clearAccessToken } from '@/shared/api/client'
 
 export const useAuthStore = defineStore('auth', () => {
   const accessToken = ref(getAccessToken())
+  const memberEmail = ref(null)
   const loading = ref(false)
   const error = ref(null)
 
   const isAuthenticated = computed(() => !!accessToken.value)
+  const displayName = computed(() => memberEmail.value?.split('@')[0] || '회원')
+
+  function setMemberEmail(email) {
+    memberEmail.value = typeof email === 'string' && email ? email : null
+  }
+
+  function clearError() {
+    error.value = null
+  }
+
+  async function loadMyInfo() {
+    const data = await authApi.fetchMyInfo()
+    setMemberEmail(data?.email)
+    return data
+  }
 
   /** 회원가입 */
   async function join(payload) {
@@ -19,7 +35,11 @@ export const useAuthStore = defineStore('auth', () => {
       await authApi.join(payload)
       return true
     } catch (e) {
-      error.value = e?.response?.status === 409 ? '이미 가입된 이메일이에요.' : '회원가입에 실패했어요.'
+      const code = e?.response?.data?.code
+      error.value =
+        e?.response?.status === 409 || code === 'MEMBER_DUPLICATE'
+          ? '이미 가입된 이메일이에요.'
+          : '회원가입에 실패했어요.'
       return false
     } finally {
       loading.value = false
@@ -32,24 +52,62 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
     try {
       accessToken.value = await authApi.login(payload)
+      try {
+        await loadMyInfo()
+      } catch {
+        setMemberEmail(payload.email)
+      }
       return true
     } catch (e) {
-      error.value = e?.response?.status === 401 ? '이메일 또는 비밀번호가 올바르지 않아요.' : '로그인에 실패했어요.'
+      error.value =
+        e?.response?.status === 401
+          ? '이메일 또는 비밀번호가 올바르지 않아요.'
+          : '로그인에 실패했어요.'
       return false
     } finally {
       loading.value = false
     }
   }
 
-  /** 로그아웃 (실패해도 로컬 토큰은 비운다) */
+  /** 새로고침 후 refresh 쿠키로 런타임 로그인 상태 복구 */
+  async function restoreSession() {
+    try {
+      if (!accessToken.value) {
+        accessToken.value = await authApi.refresh()
+      }
+      await loadMyInfo()
+      return true
+    } catch {
+      accessToken.value = null
+      setMemberEmail(null)
+      clearAccessToken()
+      return false
+    }
+  }
+
+  /** 로그아웃 (실패해도 런타임 토큰은 비운다) */
   async function logout() {
     try {
       await authApi.logout()
     } finally {
       accessToken.value = null
+      setMemberEmail(null)
       clearAccessToken()
     }
   }
 
-  return { accessToken, loading, error, isAuthenticated, join, login, logout }
+  return {
+    accessToken,
+    memberEmail,
+    displayName,
+    loading,
+    error,
+    isAuthenticated,
+    clearError,
+    loadMyInfo,
+    restoreSession,
+    join,
+    login,
+    logout,
+  }
 })

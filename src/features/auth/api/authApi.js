@@ -4,6 +4,7 @@ import { apiClient, extractBearer, setAccessToken, clearAccessToken } from '@/sh
 
 /** @typedef {import('../types/auth.js').JoinRequest} JoinRequest */
 /** @typedef {import('../types/auth.js').LoginRequest} LoginRequest */
+/** @typedef {import('../types/auth.js').MemberInfoResponse} MemberInfoResponse */
 
 /**
  * 회원가입. 성공 시 201(본문 없음).
@@ -28,7 +29,16 @@ export async function login(body) {
 }
 
 /**
- * 로그아웃. 서버 refresh 무효화 + 로컬 토큰 삭제.
+ * 내 정보 조회. 응답은 현재 email만 내려온다.
+ * @returns {Promise<MemberInfoResponse>}
+ */
+export async function fetchMyInfo() {
+  const { data } = await apiClient.get('/members/me')
+  return data
+}
+
+/**
+ * 로그아웃. 서버 refresh 무효화 + 런타임 토큰 삭제.
  * @returns {Promise<void>}
  */
 export async function logout() {

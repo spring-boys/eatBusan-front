@@ -1,17 +1,18 @@
 // 공통 axios 인스턴스. 모든 API 호출은 이 client를 거친다 (직접 axios 호출 금지).
 // 인증 방식(백엔드 기준):
-//  - access token: 로그인 응답 `Authorization` 헤더(Bearer)로 내려옴 → localStorage 저장 후 요청 헤더에 주입
+//  - access token: 로그인 응답 `Authorization` 헤더(Bearer)로 내려옴 → 런타임 메모리 저장 후 요청 헤더에 주입
 //  - refresh token: HttpOnly 쿠키(EBRefreshToken) → withCredentials 로 자동 전송, /members/refresh 로 재발급
 import axios from 'axios'
 
-const ACCESS_TOKEN_KEY = 'accessToken'
+let accessToken = null
 
-export const getAccessToken = () => localStorage.getItem(ACCESS_TOKEN_KEY)
+export const getAccessToken = () => accessToken
 export const setAccessToken = (token) => {
-  if (token) localStorage.setItem(ACCESS_TOKEN_KEY, token)
-  else localStorage.removeItem(ACCESS_TOKEN_KEY)
+  accessToken = token || null
 }
-export const clearAccessToken = () => localStorage.removeItem(ACCESS_TOKEN_KEY)
+export const clearAccessToken = () => {
+  accessToken = null
+}
 
 /** 응답 `Authorization: Bearer xxx` 헤더에서 토큰만 추출 */
 export const extractBearer = (headers) => {
