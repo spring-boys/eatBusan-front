@@ -213,6 +213,69 @@ export async function mockFetchPosts(page, size) {
 }
 
 /**
+ * 시드 단건.
+ * @param {number} postId
+ * @returns {Promise<PostResponse>}
+ */
+export async function mockFetchPost(postId) {
+  await delay(260)
+  const found = store.find((p) => p.id === Number(postId))
+  if (!found) throw new Error('post not found')
+  return { ...found }
+}
+
+/**
+ * 시드 후기 생성.
+ * @param {import('../types/post.js').PostRequest} body
+ * @returns {Promise<PostResponse>}
+ */
+export async function mockCreatePost(body) {
+  await delay(320)
+  const nextId = Math.max(...store.map((p) => p.id), 0) + 1
+  const created = {
+    id: nextId,
+    title: body.title,
+    content: body.content,
+    thumbnailUrl: null,
+    authorNickname: body.email?.split('@')[0] || '나',
+    authorProfileUrl: null,
+    viewCount: 0,
+    commentCount: 0,
+    likeCount: 0,
+    liked: false,
+    createdAt: new Date().toISOString(),
+  }
+  store.unshift(created)
+  return { ...created }
+}
+
+/**
+ * 시드 후기 수정.
+ * @param {number} postId
+ * @param {import('../types/post.js').PostRequest} body
+ * @returns {Promise<PostResponse>}
+ */
+export async function mockUpdatePost(postId, body) {
+  await delay(260)
+  const target = store.find((p) => p.id === Number(postId))
+  if (!target) throw new Error('post not found')
+  target.title = body.title
+  target.content = body.content
+  return { ...target }
+}
+
+/**
+ * 시드 후기 삭제.
+ * @param {number} postId
+ * @returns {Promise<void>}
+ */
+export async function mockDeletePost(postId) {
+  await delay(220)
+  const idx = store.findIndex((p) => p.id === Number(postId))
+  if (idx >= 0) store.splice(idx, 1)
+}
+
+/**
  * 시드 좋아요 토글.
  * @param {number} postId
  * @returns {Promise<PostLikeResponse>}

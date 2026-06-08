@@ -8,16 +8,23 @@ export const ALL_DISTRICT = '전체'
 
 export const DISTRICTS = [
   '전체',
-  '중구', '서구', '동구', '영도구',
-  '부산진구', '동래구', '남구', '북구',
-  '해운대구', '사하구', '금정구', '강서구',
-  '연제구', '수영구', '사상구', '기장군',
+  '중구',
+  '서구',
+  '동구',
+  '영도구',
+  '부산진구',
+  '동래구',
+  '남구',
+  '북구',
+  '해운대구',
+  '사하구',
+  '금정구',
+  '강서구',
+  '연제구',
+  '수영구',
+  '사상구',
+  '기장군',
 ]
-
-/** 지역별 모드 인기순 점수 */
-function popularityScore(p) {
-  return p.rating * Math.log(p.reviewCount + 1)
-}
 
 export const usePlaceListStore = defineStore('placeList', () => {
   /** @type {import('vue').Ref<import('../types/place.js').PlaceResponse[]>} */
@@ -47,11 +54,16 @@ export const usePlaceListStore = defineStore('placeList', () => {
     }
   }
 
+  function currentAreaCode() {
+    if (mode.value !== 'district' || district.value === ALL_DISTRICT) return null
+    return placeApi.getAreaCodeByDistrict(district.value)
+  }
+
   async function load() {
     loading.value = true
     error.value = null
     try {
-      places.value = await placeApi.fetchPlaces()
+      places.value = await placeApi.fetchPlaces({ areaCode: currentAreaCode() })
     } catch {
       error.value = '주변 식당을 불러오지 못했어요.'
     } finally {
@@ -64,28 +76,38 @@ export const usePlaceListStore = defineStore('placeList', () => {
     await load()
   }
 
-  function setMode(next) {
+  async function setMode(next) {
+    if (mode.value === next) return
     mode.value = next
+    await load()
   }
 
-  function setDistrict(next) {
+  async function setDistrict(next) {
+    if (district.value === next) return
     district.value = next
+    if (mode.value === 'district') await load()
   }
 
   const visiblePlaces = computed(() => {
     const loc = location.value
     let list = places.value.map((p) => ({
       ...p,
-      distanceM: loc ? haversineMeters(loc.lat, loc.lng, p.lat, p.lng) : undefined,
+      distanceM:
+        loc && Number.isFinite(p.lat) && Number.isFinite(p.lng)
+          ? haversineMeters(loc.lat, loc.lng, p.lat, p.lng)
+          : undefined,
     }))
 
     if (mode.value === 'nearby') {
-      if (loc) list = [...list].sort((a, b) => (a.distanceM ?? 0) - (b.distanceM ?? 0))
-    } else {
-      if (district.value !== ALL_DISTRICT) {
-        list = list.filter((p) => p.district === district.value)
+      if (loc) {
+        list = [...list].sort((a, b) => {
+          const aDistance = Number.isFinite(a.distanceM) ? a.distanceM : Number.POSITIVE_INFINITY
+          const bDistance = Number.isFinite(b.distanceM) ? b.distanceM : Number.POSITIVE_INFINITY
+          return aDistance - bDistance
+        })
       }
-      list = [...list].sort((a, b) => popularityScore(b) - popularityScore(a))
+    } else {
+      if (district.value !== ALL_DISTRICT) list = list.filter((p) => p.district === district.value)
     }
 
     return list

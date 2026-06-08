@@ -69,6 +69,18 @@ export async function mockCreateComment(postId, { content }) {
 /**
  * @param {number} postId
  * @param {number} commentId
+ * @param {{ content: string }} body
+ */
+export async function mockUpdateComment(postId, commentId, { content }) {
+  await delay(200)
+  const all = ensure(postId)
+  const target = all.find((c) => c.id === Number(commentId))
+  if (target) target.content = content
+}
+
+/**
+ * @param {number} postId
+ * @param {number} commentId
  */
 export async function mockDeleteComment(postId, commentId) {
   await delay(180)

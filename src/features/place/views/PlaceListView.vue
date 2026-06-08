@@ -38,7 +38,7 @@ const featuredTag = computed(() => {
     const d = featured.value.distanceM
     return d != null ? `가장 가까워요 · ${formatDistance(d)}` : '가장 가까워요'
   }
-  return district.value === '전체' ? '부산 인기 1위' : `${district.value} 인기 1위`
+  return null
 })
 
 // --- 빈 상태 ---
@@ -72,8 +72,19 @@ onMounted(() => store.init())
         지금 부산,<br />
         <span class="hd__hl">
           {{ headline }}
-          <svg class="hd__underline" viewBox="0 0 140 12" preserveAspectRatio="none" aria-hidden="true">
-            <path d="M3 8.5 C35 3.5 90 11 137 5.5" stroke="#B0234A" stroke-width="4.5" fill="none" stroke-linecap="round" />
+          <svg
+            class="hd__underline"
+            viewBox="0 0 140 12"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M3 8.5 C35 3.5 90 11 137 5.5"
+              stroke="#B0234A"
+              stroke-width="4.5"
+              fill="none"
+              stroke-linecap="round"
+            />
           </svg>
         </span>
       </h1>
@@ -114,12 +125,7 @@ onMounted(() => store.init())
       </button>
 
       <!-- 지역별: 구/군 선택 -->
-      <button
-        v-else
-        class="distpill"
-        type="button"
-        @click="districtSheet = true"
-      >
+      <button v-else class="distpill" type="button" @click="districtSheet = true">
         <v-icon icon="mdi-map-marker-outline" size="15" />
         {{ district === '전체' ? '지역 선택' : district }}
         <v-icon icon="mdi-chevron-down" size="16" />
@@ -184,11 +190,7 @@ onMounted(() => store.init())
     </template>
 
     <!-- 지역 선택 시트 -->
-    <DistrictSheet
-      v-model="districtSheet"
-      :selected="district"
-      @select="store.setDistrict"
-    />
+    <DistrictSheet v-model="districtSheet" :selected="district" @select="store.setDistrict" />
   </div>
 </template>
 
@@ -206,7 +208,7 @@ onMounted(() => store.init())
 }
 .hd__hl {
   position: relative;
-  color: #B0234A;
+  color: #b0234a;
   white-space: nowrap;
 }
 .hd__underline {
@@ -258,7 +260,7 @@ onMounted(() => store.init())
 }
 .seg-btn--on .seg-btn__icon {
   opacity: 1;
-  color: #B0234A;
+  color: #b0234a;
 }
 
 /* 위치 pill / 지역 pill */
@@ -278,16 +280,23 @@ onMounted(() => store.init())
 }
 .locpill {
   background: var(--brand-tint);
-  color: #8E1B3A;
+  color: #8e1b3a;
 }
-.locpill:hover { background: var(--brand-tint-strong); }
-.locpill:disabled { opacity: 0.6; cursor: default; }
+.locpill:hover {
+  background: var(--brand-tint-strong);
+}
+.locpill:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
 
 .distpill {
   background: var(--brand-tint);
-  color: #8E1B3A;
+  color: #8e1b3a;
 }
-.distpill:hover { background: var(--brand-tint-strong); }
+.distpill:hover {
+  background: var(--brand-tint-strong);
+}
 
 .featured {
   margin-bottom: 22px;
@@ -357,6 +366,8 @@ onMounted(() => store.init())
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .seg-btn { transition: none; }
+  .seg-btn {
+    transition: none;
+  }
 }
 </style>
