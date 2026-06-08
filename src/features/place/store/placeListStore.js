@@ -31,7 +31,7 @@ export const usePlaceListStore = defineStore('placeList', () => {
   const usingFallback = ref(false)
 
   /** @type {import('vue').Ref<'nearby'|'district'>} */
-  const mode = ref('nearby')
+  const mode = ref('district')
   const district = ref(ALL_DISTRICT)
 
   async function locate() {
@@ -61,7 +61,6 @@ export const usePlaceListStore = defineStore('placeList', () => {
 
   async function init() {
     if (places.value.length > 0) return
-    await locate()
     await load()
   }
 

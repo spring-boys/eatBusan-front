@@ -82,16 +82,6 @@ onMounted(() => store.init())
       <div class="segment" role="tablist" aria-label="탐색 모드">
         <button
           role="tab"
-          :aria-selected="mode === 'nearby'"
-          class="seg-btn"
-          :class="{ 'seg-btn--on': mode === 'nearby' }"
-          type="button"
-          @click="switchMode('nearby')"
-        >
-          <v-icon icon="mdi-crosshairs-gps" size="15" class="seg-btn__icon" />내 주변
-        </button>
-        <button
-          role="tab"
           :aria-selected="mode === 'district'"
           class="seg-btn"
           :class="{ 'seg-btn--on': mode === 'district' }"
@@ -99,6 +89,16 @@ onMounted(() => store.init())
           @click="switchMode('district')"
         >
           <v-icon icon="mdi-map-outline" size="15" class="seg-btn__icon" />지역별
+        </button>
+        <button
+          role="tab"
+          :aria-selected="mode === 'nearby'"
+          class="seg-btn"
+          :class="{ 'seg-btn--on': mode === 'nearby' }"
+          type="button"
+          @click="switchMode('nearby')"
+        >
+          <v-icon icon="mdi-crosshairs-gps" size="15" class="seg-btn__icon" />내 주변
         </button>
       </div>
 
