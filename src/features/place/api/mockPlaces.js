@@ -257,6 +257,22 @@ function buildReviews(placeId) {
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
+function distanceScore(place, location) {
+  if (!location) return 0
+  const dLat = place.lat - location.lat
+  const dLng = place.lng - location.lng
+  return dLat * dLat + dLng * dLng
+}
+
+function toMockPlace(p) {
+  return {
+    ...p,
+    areaCode: AREA_CODE_BY_DISTRICT[p.district],
+    thumbnailUrl: defaultPlaceThumb,
+    photos: [defaultPlaceThumb],
+  }
+}
+
 /**
  * 주변 식당 목록 (거리 정렬은 클라이언트에서 현재 위치 기준으로 처리).
  * @param {{ areaCode?: string|null, page?: number, size?: number }} [options]
@@ -270,12 +286,19 @@ export async function mockFetchPlaces(options = {}) {
   const size = Number.isFinite(options.size) ? options.size : source.length
   const start = district ? page * size : 0
   const end = district ? start + size : source.length
-  return source.slice(start, end).map((p) => ({
-    ...p,
-    areaCode: AREA_CODE_BY_DISTRICT[p.district],
-    thumbnailUrl: defaultPlaceThumb,
-    photos: [defaultPlaceThumb],
-  }))
+  return source.slice(start, end).map(toMockPlace)
+}
+
+/**
+ * 현재 위치 기반 식당 검색.
+ * @param {{ lat: number, lng: number }} location
+ * @returns {Promise<PlaceResponse[]>}
+ */
+export async function mockSearchPlaces(location) {
+  await delay(550)
+  return [...PLACES]
+    .sort((a, b) => distanceScore(a, location) - distanceScore(b, location))
+    .map(toMockPlace)
 }
 
 /**
@@ -288,10 +311,7 @@ export async function mockFetchPlace(id) {
   const found = PLACES.find((p) => p.id === id)
   if (!found) throw new Error('place not found')
   return {
-    ...found,
-    areaCode: AREA_CODE_BY_DISTRICT[found.district],
-    thumbnailUrl: defaultPlaceThumb,
-    photos: [defaultPlaceThumb],
+    ...toMockPlace(found),
   }
 }
 

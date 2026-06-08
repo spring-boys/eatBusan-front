@@ -109,14 +109,14 @@
 
 ---
 
-## Place  🟡 일부 (구역코드 기반 + 카카오 검색 미완)
+## Place  🟡 일부 (구역코드 기반 + 현재 위치 검색)
 `/api/places` (PlaceController)
 
 | 동작 | Method | Path | 인증 | 비고 |
 |------|--------|------|------|------|
 | 전체 랜덤 목록 | GET | `/api/places` | - | `PlaceResponseListDto[]` |
 | 구역별 목록 | GET | `/api/places/area/{areaCode}?page=0&size=10` | - | `Page<PlaceResponseListDto>` (오프셋, page 0부터) |
-| 카카오 검색 | GET | `/api/places/search` | - | 🟡 미완(현재 mock 좌표 하드코딩) |
+| 현재 위치 검색 | POST | `/api/places/search` | - | `PlaceRequestDto` 기준 현재 좌표 주변 `PlaceResponseListDto[]` |
 
 **목록 응답 (PlaceResponseListDto)**
 ```jsonc
@@ -124,6 +124,7 @@
 ```
 - 프론트는 `area_cde`를 부산 구/군명으로 변환하고, 이미지가 없으면 `src/assets/place-thumb-default.svg`를 기본 이미지로 사용한다.
 - 별점·카테고리·좌표는 목록 DTO에 없다. 프론트 목록 화면은 `postCnt`를 후기 수로, `likeCnt`를 좋아요 수로 매핑한다. (현재 프론트는 `VITE_USE_MOCK=true` 시드로도 동작.)
+- 현재 위치 검색 요청은 request body에 `x=경도`, `y=위도`, `radius=1000` 형태의 `PlaceRequestDto`를 담아 보낸다. 프론트 개발 모드에서는 위치 권한 실패 시 부산 시청 좌표를 fallback으로 사용한다.
 
 ---
 

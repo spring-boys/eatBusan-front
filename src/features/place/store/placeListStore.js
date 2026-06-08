@@ -45,7 +45,7 @@ export const usePlaceListStore = defineStore('placeList', () => {
   const mode = ref('district')
   const district = ref(ALL_DISTRICT)
 
-  async function locate() {
+  async function updateLocation() {
     locating.value = true
     try {
       location.value = await getCurrentPosition()
@@ -56,6 +56,11 @@ export const usePlaceListStore = defineStore('placeList', () => {
     } finally {
       locating.value = false
     }
+  }
+
+  async function locate() {
+    await updateLocation()
+    if (mode.value === 'nearby') await load()
   }
 
   function currentAreaCode() {
@@ -74,14 +79,19 @@ export const usePlaceListStore = defineStore('placeList', () => {
     page.value = 0
     hasMore.value = false
     try {
-      const result = await placeApi.fetchPlacePage({
-        areaCode: currentAreaCode(),
-        page: 0,
-        size: PAGE_SIZE,
-      })
-      places.value = result.items
-      page.value = result.page
-      hasMore.value = result.hasMore
+      if (mode.value === 'nearby') {
+        if (!location.value) await updateLocation()
+        places.value = await placeApi.searchPlacesByLocation(location.value)
+      } else {
+        const result = await placeApi.fetchPlacePage({
+          areaCode: currentAreaCode(),
+          page: 0,
+          size: PAGE_SIZE,
+        })
+        places.value = result.items
+        page.value = result.page
+        hasMore.value = result.hasMore
+      }
     } catch {
       error.value = '주변 식당을 불러오지 못했어요.'
     } finally {
@@ -90,6 +100,7 @@ export const usePlaceListStore = defineStore('placeList', () => {
   }
 
   async function loadMore() {
+    if (mode.value !== 'district') return
     if (loading.value || loadingMore.value || error.value || !hasMore.value) return
     loadingMore.value = true
     try {

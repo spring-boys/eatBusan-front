@@ -11,6 +11,14 @@
  */
 
 /**
+ * 현재 위치 기반 장소 검색 요청 (백엔드 PlaceRequestDto 대응)
+ * @typedef {Object} PlaceSearchRequest
+ * @property {number} x          경도
+ * @property {number} y          위도
+ * @property {number} radius     검색 반경(m)
+ */
+
+/**
  * @typedef {Object} PlaceResponse
  * @property {number} id
  * @property {string} name

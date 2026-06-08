@@ -6,6 +6,7 @@ import defaultPlaceThumb from '@/assets/place-thumb-default.svg'
 
 /** @typedef {import('../types/place.js').PlaceResponse} PlaceResponse */
 /** @typedef {import('../types/place.js').PlaceListResponseDto} PlaceListResponseDto */
+/** @typedef {import('../types/place.js').PlaceSearchRequest} PlaceSearchRequest */
 /** @typedef {import('@/features/post/types/post.js').PostResponse} PostResponse */
 
 export const AREA_CODE_BY_DISTRICT = Object.freeze({
@@ -192,6 +193,34 @@ export async function fetchPlacePage(options = {}) {
 export async function fetchPlaces(options = {}) {
   const { items } = await fetchPlacePage(options)
   return items
+}
+
+/**
+ * 현재 위치 기반 식당 검색. 백엔드는 PlaceRequestDto(x=경도, y=위도, radius)를 받는다.
+ * @param {{ lat: number, lng: number, radius?: number }} location
+ * @returns {Promise<PlaceResponse[]>}
+ */
+export async function searchPlacesByLocation(location) {
+  const radius = Number.isFinite(location.radius) ? location.radius : 1000
+  /** @type {PlaceSearchRequest} */
+  const body = {
+    x: location.lng,
+    y: location.lat,
+    radius,
+  }
+  const fetchMock = async () => {
+    const { mockSearchPlaces } = await import('./mockPlaces')
+    return mockSearchPlaces({ lat: location.lat, lng: location.lng })
+  }
+  if (USE_MOCK) return fetchMock()
+
+  try {
+    const { data } = await apiClient.post('/places/search', body)
+    return unwrapPlaceList(data).map(normalizePlace)
+  } catch (error) {
+    if (shouldUseMockFallback(error)) return fetchMock()
+    throw error
+  }
 }
 
 /**
