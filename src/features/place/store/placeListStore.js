@@ -5,6 +5,7 @@ import * as placeApi from '../api/placeApi'
 import { BUSAN_CENTER, getCurrentPosition, haversineMeters } from '@/shared/utils/geo'
 
 export const ALL_DISTRICT = '전체'
+const PAGE_SIZE = 10
 
 export const DISTRICTS = [
   '전체',
@@ -30,7 +31,10 @@ export const usePlaceListStore = defineStore('placeList', () => {
   /** @type {import('vue').Ref<import('../types/place.js').PlaceResponse[]>} */
   const places = ref([])
   const loading = ref(false)
+  const loadingMore = ref(false)
   const error = ref(null)
+  const page = ref(0)
+  const hasMore = ref(false)
 
   /** @type {import('vue').Ref<{ lat: number, lng: number } | null>} */
   const location = ref(null)
@@ -59,15 +63,48 @@ export const usePlaceListStore = defineStore('placeList', () => {
     return placeApi.getAreaCodeByDistrict(district.value)
   }
 
+  function appendUnique(nextPlaces) {
+    const seen = new Set(places.value.map((p) => p.id))
+    places.value.push(...nextPlaces.filter((p) => !seen.has(p.id)))
+  }
+
   async function load() {
     loading.value = true
     error.value = null
+    page.value = 0
+    hasMore.value = false
     try {
-      places.value = await placeApi.fetchPlaces({ areaCode: currentAreaCode() })
+      const result = await placeApi.fetchPlacePage({
+        areaCode: currentAreaCode(),
+        page: 0,
+        size: PAGE_SIZE,
+      })
+      places.value = result.items
+      page.value = result.page
+      hasMore.value = result.hasMore
     } catch {
       error.value = '주변 식당을 불러오지 못했어요.'
     } finally {
       loading.value = false
+    }
+  }
+
+  async function loadMore() {
+    if (loading.value || loadingMore.value || error.value || !hasMore.value) return
+    loadingMore.value = true
+    try {
+      const result = await placeApi.fetchPlacePage({
+        areaCode: currentAreaCode(),
+        page: page.value + 1,
+        size: PAGE_SIZE,
+      })
+      appendUnique(result.items)
+      page.value = result.page
+      hasMore.value = result.hasMore
+    } catch {
+      hasMore.value = false
+    } finally {
+      loadingMore.value = false
     }
   }
 
@@ -116,7 +153,10 @@ export const usePlaceListStore = defineStore('placeList', () => {
   return {
     places,
     loading,
+    loadingMore,
     error,
+    page,
+    hasMore,
     location,
     locating,
     usingFallback,
@@ -125,6 +165,7 @@ export const usePlaceListStore = defineStore('placeList', () => {
     visiblePlaces,
     locate,
     load,
+    loadMore,
     init,
     setMode,
     setDistrict,

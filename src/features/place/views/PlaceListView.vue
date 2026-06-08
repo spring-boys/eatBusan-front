@@ -4,13 +4,24 @@ import { computed, ref, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { usePlaceListStore } from '../store/placeListStore'
 import { formatDistance } from '@/shared/utils/geo'
+import { useInfiniteScroll } from '@/shared/composables/useInfiniteScroll'
 import PlaceListItem from '../components/PlaceListItem.vue'
 import PlaceFeaturedCard from '../components/PlaceFeaturedCard.vue'
 import DistrictSheet from '../components/DistrictSheet.vue'
 
 const store = usePlaceListStore()
-const { visiblePlaces, loading, error, locating, usingFallback, location, mode, district } =
-  storeToRefs(store)
+const {
+  visiblePlaces,
+  loading,
+  loadingMore,
+  error,
+  locating,
+  usingFallback,
+  location,
+  mode,
+  district,
+} = storeToRefs(store)
+const { setSentinel } = useInfiniteScroll(() => store.loadMore())
 
 const districtSheet = ref(false)
 
@@ -187,6 +198,9 @@ onMounted(() => store.init())
           :show-distance="mode === 'nearby'"
         />
       </div>
+      <div :ref="setSentinel" class="list__sentinel">
+        <v-progress-circular v-if="loadingMore" indeterminate color="primary" size="26" width="3" />
+      </div>
     </template>
 
     <!-- 지역 선택 시트 -->
@@ -305,6 +319,12 @@ onMounted(() => store.init())
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+.list__sentinel {
+  min-height: 1px;
+  display: flex;
+  justify-content: center;
+  padding: 18px 0 2px;
 }
 
 /* 스켈레톤 */

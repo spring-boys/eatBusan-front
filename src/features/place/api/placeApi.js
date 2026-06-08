@@ -121,6 +121,29 @@ function unwrapPlaceList(data) {
 }
 
 /**
+ * Spring Page 또는 배열 응답을 화면 목록 + 페이지 메타로 정규화한다.
+ * @param {unknown} data
+ * @param {{ page: number, size: number, paged: boolean }} options
+ * @returns {{ items: PlaceResponse[], page: number, hasMore: boolean }}
+ */
+function normalizePlacePage(data, { page, size, paged }) {
+  const rawItems = unwrapPlaceList(data)
+  const items = rawItems.map(normalizePlace)
+  if (!paged) return { items, page, hasMore: false }
+
+  const responsePage = Number(data?.number)
+  const normalizedPage = Number.isFinite(responsePage) ? responsePage : page
+  const totalPages = Number(data?.totalPages)
+  const isLast = data?.last
+  const hasMore =
+    isLast === false ||
+    (Number.isFinite(totalPages) && normalizedPage + 1 < totalPages) ||
+    (typeof isLast !== 'boolean' && !Number.isFinite(totalPages) && rawItems.length === size)
+
+  return { items, page: normalizedPage, hasMore }
+}
+
+/**
  * @param {unknown} data
  * @returns {Array<Record<string, unknown>>}
  */
@@ -132,15 +155,21 @@ function unwrapReviewList(data) {
 }
 
 /**
- * 식당 목록. areaCode가 있으면 지역별 목록, 없으면 전체 랜덤 목록을 조회한다.
+ * 식당 목록 페이지. areaCode가 있으면 지역별 Page, 없으면 전체 랜덤 목록을 조회한다.
  * @param {{ areaCode?: string|null, page?: number, size?: number }} [options]
- * @returns {Promise<PlaceResponse[]>}
+ * @returns {Promise<{ items: PlaceResponse[], page: number, hasMore: boolean }>}
  */
-export async function fetchPlaces(options = {}) {
+export async function fetchPlacePage(options = {}) {
   const { areaCode = null, page = 0, size = 10 } = options
+  const paged = !!areaCode
   const fetchMock = async () => {
     const { mockFetchPlaces } = await import('./mockPlaces')
-    return mockFetchPlaces({ areaCode })
+    const items = await mockFetchPlaces({ areaCode, page, size })
+    return {
+      items,
+      page,
+      hasMore: paged && items.length === size,
+    }
   }
   if (USE_MOCK) return fetchMock()
 
@@ -148,11 +177,21 @@ export async function fetchPlaces(options = {}) {
     const endpoint = areaCode ? `/places/area/${areaCode}` : '/places'
     const config = areaCode ? { params: { page, size } } : undefined
     const { data } = await apiClient.get(endpoint, config)
-    return unwrapPlaceList(data).map(normalizePlace)
+    return normalizePlacePage(data, { page, size, paged })
   } catch (error) {
     if (shouldUseMockFallback(error)) return fetchMock()
     throw error
   }
+}
+
+/**
+ * 식당 목록. 기존 호출부 호환용 배열 반환 함수.
+ * @param {{ areaCode?: string|null, page?: number, size?: number }} [options]
+ * @returns {Promise<PlaceResponse[]>}
+ */
+export async function fetchPlaces(options = {}) {
+  const { items } = await fetchPlacePage(options)
+  return items
 }
 
 /**

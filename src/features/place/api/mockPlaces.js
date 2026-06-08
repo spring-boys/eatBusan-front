@@ -259,14 +259,18 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
 /**
  * 주변 식당 목록 (거리 정렬은 클라이언트에서 현재 위치 기준으로 처리).
- * @param {{ areaCode?: string|null }} [options]
+ * @param {{ areaCode?: string|null, page?: number, size?: number }} [options]
  * @returns {Promise<PlaceResponse[]>}
  */
 export async function mockFetchPlaces(options = {}) {
   await delay(550)
   const district = DISTRICT_BY_AREA_CODE[options.areaCode ?? '']
   const source = district ? PLACES.filter((p) => p.district === district) : PLACES
-  return source.map((p) => ({
+  const page = Number.isFinite(options.page) ? options.page : 0
+  const size = Number.isFinite(options.size) ? options.size : source.length
+  const start = district ? page * size : 0
+  const end = district ? start + size : source.length
+  return source.slice(start, end).map((p) => ({
     ...p,
     areaCode: AREA_CODE_BY_DISTRICT[p.district],
     thumbnailUrl: defaultPlaceThumb,
