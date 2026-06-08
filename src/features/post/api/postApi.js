@@ -68,6 +68,7 @@ export async function fetchPosts(page, size) {
   try {
     const { data } = await apiClient.get('/posts')
     const list = unwrapPostList(data).map(normalizePost)
+    if (import.meta.env.DEV && list.length === 0) return fetchMock()
     const start = Math.max(page - 1, 0) * size
     return list.slice(start, start + size)
   } catch (error) {
