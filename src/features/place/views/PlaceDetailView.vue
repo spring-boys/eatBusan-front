@@ -13,6 +13,13 @@ const store = usePlaceDetailStore()
 const { place, reviews, loading, error } = storeToRefs(store)
 
 const heroImage = computed(() => place.value?.photos?.[0] ?? place.value?.thumbnailUrl ?? null)
+const hasRating = computed(() => Number.isFinite(place.value?.rating))
+const metricIcon = computed(() => (hasRating.value ? 'mdi-star' : 'mdi-heart'))
+const metricColor = computed(() => (hasRating.value ? 'warning' : 'secondary'))
+const metricText = computed(() =>
+  hasRating.value ? place.value.rating.toFixed(1) : `좋아요 ${place.value?.likeCount ?? 0}`,
+)
+const reviewText = computed(() => `후기 ${place.value?.reviewCount ?? place.value?.postCnt ?? 0}`)
 
 const commentOpen = ref(false)
 const commentPostId = ref(null)
@@ -93,9 +100,9 @@ watch(
           <span class="hero__cat">{{ place.category }}</span>
           <h1 class="hero__name">{{ place.name }}</h1>
           <div class="hero__rating">
-            <v-icon icon="mdi-star" size="17" color="#E8A53D" aria-hidden="true" />
-            <strong>{{ place.rating.toFixed(1) }}</strong>
-            <span class="hero__rev">후기 {{ place.reviewCount }}</span>
+            <v-icon :icon="metricIcon" size="17" :color="metricColor" aria-hidden="true" />
+            <strong>{{ metricText }}</strong>
+            <span class="hero__rev">{{ reviewText }}</span>
             <span v-if="place.priceRange" class="hero__price">· {{ place.priceRange }}</span>
           </div>
         </div>
@@ -126,7 +133,9 @@ watch(
       <!-- 후기 -->
       <section class="reviews">
         <div class="reviews__head">
-          <h2 class="reviews__title">후기 <span class="reviews__count">{{ reviews.length }}</span></h2>
+          <h2 class="reviews__title">
+            후기 <span class="reviews__count">{{ reviews.length }}</span>
+          </h2>
           <v-btn
             variant="tonal"
             color="primary"
@@ -306,7 +315,7 @@ watch(
   color: rgb(var(--v-theme-on-surface));
 }
 .reviews__count {
-  color: #B0234A;
+  color: #b0234a;
 }
 .reviews__list {
   display: flex;

@@ -5,25 +5,36 @@ import * as placeApi from '../api/placeApi'
 import { BUSAN_CENTER, getCurrentPosition, haversineMeters } from '@/shared/utils/geo'
 
 export const ALL_DISTRICT = '전체'
+const PAGE_SIZE = 10
 
 export const DISTRICTS = [
   '전체',
-  '중구', '서구', '동구', '영도구',
-  '부산진구', '동래구', '남구', '북구',
-  '해운대구', '사하구', '금정구', '강서구',
-  '연제구', '수영구', '사상구', '기장군',
+  '중구',
+  '서구',
+  '동구',
+  '영도구',
+  '부산진구',
+  '동래구',
+  '남구',
+  '북구',
+  '해운대구',
+  '사하구',
+  '금정구',
+  '강서구',
+  '연제구',
+  '수영구',
+  '사상구',
+  '기장군',
 ]
-
-/** 지역별 모드 인기순 점수 */
-function popularityScore(p) {
-  return p.rating * Math.log(p.reviewCount + 1)
-}
 
 export const usePlaceListStore = defineStore('placeList', () => {
   /** @type {import('vue').Ref<import('../types/place.js').PlaceResponse[]>} */
   const places = ref([])
   const loading = ref(false)
+  const loadingMore = ref(false)
   const error = ref(null)
+  const page = ref(0)
+  const hasMore = ref(false)
 
   /** @type {import('vue').Ref<{ lat: number, lng: number } | null>} */
   const location = ref(null)
@@ -31,10 +42,10 @@ export const usePlaceListStore = defineStore('placeList', () => {
   const usingFallback = ref(false)
 
   /** @type {import('vue').Ref<'nearby'|'district'>} */
-  const mode = ref('nearby')
+  const mode = ref('district')
   const district = ref(ALL_DISTRICT)
 
-  async function locate() {
+  async function updateLocation() {
     locating.value = true
     try {
       location.value = await getCurrentPosition()
@@ -47,11 +58,40 @@ export const usePlaceListStore = defineStore('placeList', () => {
     }
   }
 
+  async function locate() {
+    await updateLocation()
+    if (mode.value === 'nearby') await load()
+  }
+
+  function currentAreaCode() {
+    if (mode.value !== 'district' || district.value === ALL_DISTRICT) return null
+    return placeApi.getAreaCodeByDistrict(district.value)
+  }
+
+  function appendUnique(nextPlaces) {
+    const seen = new Set(places.value.map((p) => p.id))
+    places.value.push(...nextPlaces.filter((p) => !seen.has(p.id)))
+  }
+
   async function load() {
     loading.value = true
     error.value = null
+    page.value = 0
+    hasMore.value = false
     try {
-      places.value = await placeApi.fetchPlaces()
+      if (mode.value === 'nearby') {
+        if (!location.value) await updateLocation()
+        places.value = await placeApi.searchPlacesByLocation(location.value)
+      } else {
+        const result = await placeApi.fetchPlacePage({
+          areaCode: currentAreaCode(),
+          page: 0,
+          size: PAGE_SIZE,
+        })
+        places.value = result.items
+        page.value = result.page
+        hasMore.value = result.hasMore
+      }
     } catch {
       error.value = '주변 식당을 불러오지 못했어요.'
     } finally {
@@ -59,34 +99,63 @@ export const usePlaceListStore = defineStore('placeList', () => {
     }
   }
 
+  async function loadMore() {
+    if (mode.value !== 'district') return
+    if (loading.value || loadingMore.value || error.value || !hasMore.value) return
+    loadingMore.value = true
+    try {
+      const result = await placeApi.fetchPlacePage({
+        areaCode: currentAreaCode(),
+        page: page.value + 1,
+        size: PAGE_SIZE,
+      })
+      appendUnique(result.items)
+      page.value = result.page
+      hasMore.value = result.hasMore
+    } catch {
+      hasMore.value = false
+    } finally {
+      loadingMore.value = false
+    }
+  }
+
   async function init() {
     if (places.value.length > 0) return
-    await locate()
     await load()
   }
 
-  function setMode(next) {
+  async function setMode(next) {
+    if (mode.value === next) return
     mode.value = next
+    await load()
   }
 
-  function setDistrict(next) {
+  async function setDistrict(next) {
+    if (district.value === next) return
     district.value = next
+    if (mode.value === 'district') await load()
   }
 
   const visiblePlaces = computed(() => {
     const loc = location.value
     let list = places.value.map((p) => ({
       ...p,
-      distanceM: loc ? haversineMeters(loc.lat, loc.lng, p.lat, p.lng) : undefined,
+      distanceM:
+        loc && Number.isFinite(p.lat) && Number.isFinite(p.lng)
+          ? haversineMeters(loc.lat, loc.lng, p.lat, p.lng)
+          : undefined,
     }))
 
     if (mode.value === 'nearby') {
-      if (loc) list = [...list].sort((a, b) => (a.distanceM ?? 0) - (b.distanceM ?? 0))
-    } else {
-      if (district.value !== ALL_DISTRICT) {
-        list = list.filter((p) => p.district === district.value)
+      if (loc) {
+        list = [...list].sort((a, b) => {
+          const aDistance = Number.isFinite(a.distanceM) ? a.distanceM : Number.POSITIVE_INFINITY
+          const bDistance = Number.isFinite(b.distanceM) ? b.distanceM : Number.POSITIVE_INFINITY
+          return aDistance - bDistance
+        })
       }
-      list = [...list].sort((a, b) => popularityScore(b) - popularityScore(a))
+    } else {
+      if (district.value !== ALL_DISTRICT) list = list.filter((p) => p.district === district.value)
     }
 
     return list
@@ -95,7 +164,10 @@ export const usePlaceListStore = defineStore('placeList', () => {
   return {
     places,
     loading,
+    loadingMore,
     error,
+    page,
+    hasMore,
     location,
     locating,
     usingFallback,
@@ -104,6 +176,7 @@ export const usePlaceListStore = defineStore('placeList', () => {
     visiblePlaces,
     locate,
     load,
+    loadMore,
     init,
     setMode,
     setDistrict,

@@ -1,17 +1,17 @@
 <script setup>
-// 좋아요한 맛집 — 목업(UI only). 샘플 데이터로 레이아웃만 보여준다.
-// TODO(AI 연동): features/placeLike/store/placeLikeStore.js 의 loadMyLikes() 로 목록 로드,
-//   하트 토글은 unlike(placeId). 커서(lastId) 더보기는 loadMore(). loading/error/빈 상태 처리.
+// 좋아요한 맛집. 실제 API를 우선 호출하고, API 미연결 시 placeLike mock fallback을 사용한다.
+import { onMounted } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
+import { usePlaceLikeStore } from '../store/placeLikeStore'
 
 const router = useRouter()
+const store = usePlaceLikeStore()
+const { myLikes, loading, error } = storeToRefs(store)
 
-// 목업 샘플 (PlaceLikeDetail 형태)
-const likes = [
-  { placeLikeId: 3, placeId: 11, name: '해운대 암소갈비집', address: '해운대구 중동', likeCnt: 320 },
-  { placeLikeId: 2, placeId: 7, name: '광안리 민락수변 회센터', address: '수영구 민락동', likeCnt: 154 },
-  { placeLikeId: 1, placeId: 4, name: '전포 카페 노을', address: '부산진구 전포동', likeCnt: 98 },
-]
+onMounted(() => {
+  if (myLikes.value.length === 0) store.loadMyLikes()
+})
 </script>
 
 <template>
@@ -23,7 +23,19 @@ const likes = [
       <h1 class="sub-hd__title">좋아요한 맛집</h1>
     </header>
 
-    <div v-if="likes.length === 0" class="empty">
+    <div v-if="loading" class="empty">
+      <v-progress-circular indeterminate color="primary" size="28" width="3" />
+    </div>
+
+    <div v-else-if="error" class="empty">
+      <v-icon icon="mdi-wifi-off" size="40" class="empty__ic" />
+      <p class="empty__t">{{ error }}</p>
+      <v-btn color="primary" variant="tonal" rounded="lg" size="small" @click="store.loadMyLikes()">
+        다시 시도
+      </v-btn>
+    </div>
+
+    <div v-else-if="myLikes.length === 0" class="empty">
       <v-icon icon="mdi-heart-outline" size="40" class="empty__ic" />
       <p class="empty__t">아직 좋아요한 맛집이 없어요</p>
       <v-btn color="primary" variant="tonal" rounded="lg" size="small" @click="router.push('/')">
@@ -32,7 +44,7 @@ const likes = [
     </div>
 
     <ul v-else class="list">
-      <li v-for="p in likes" :key="p.placeLikeId">
+      <li v-for="p in myLikes" :key="p.placeLikeId">
         <router-link :to="`/places/${p.placeId}`" class="row">
           <div class="row__info">
             <h3 class="row__name">{{ p.name }}</h3>

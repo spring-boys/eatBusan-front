@@ -109,19 +109,22 @@
 
 ---
 
-## Place  🟡 일부 (구역코드 기반 + 카카오 검색 미완)
+## Place  🟡 일부 (구역코드 기반 + 현재 위치 검색)
 `/api/places` (PlaceController)
 
 | 동작 | Method | Path | 인증 | 비고 |
 |------|--------|------|------|------|
-| 구역별 목록 | GET | `/api/places/{areaCode}?page=0&size=10` | - | `Page<PlaceResponseDto>` (오프셋, page 0부터) |
-| 카카오 검색 | GET | `/api/places/search` | - | 🟡 미완(현재 mock 좌표 하드코딩) |
+| 전체 랜덤 목록 | GET | `/api/places` | - | `PlaceResponseListDto[]` |
+| 구역별 목록 | GET | `/api/places/area/{areaCode}?page=0&size=10` | - | `Page<PlaceResponseListDto>` (오프셋, page 0부터) |
+| 현재 위치 검색 | POST | `/api/places/search` | - | `PlaceRequestDto` 기준 현재 좌표 주변 `PlaceResponseListDto[]` |
 
-**응답 (PlaceResponseDto)**
+**목록 응답 (PlaceResponseListDto)**
 ```jsonc
-{ "id": 1, "address": "부산 ...", "area_cde": "26350", "name": "○○국밥", "phone": "051-...", "url": "http://place.map.kakao.com/..." }
+{ "id": 1, "address": "부산 ...", "area_cde": "26350", "name": "○○국밥", "postCnt": 12, "likeCnt": 320 }
 ```
-- ⚠️ **프론트 불일치**: `src/features/place/types/place.js` 의 `PlaceResponse`(`category`/`rating`/`reviewCount`/`thumbnailUrl`/`lat`/`lng` 등)는 **프론트 제안 초안**이며 백엔드엔 없다(백엔드는 id/address/areaCode/name/phone/url만). 또 프론트는 `GET /api/places`(구역코드 없음)를 호출 중이라 실제 엔드포인트(`/{areaCode}`)와 다르다. 별점·카테고리·좌표가 필요하면 백엔드/카카오 연동 확정 후 합의. (현재 프론트는 `VITE_USE_MOCK=true` 시드로 동작.)
+- 프론트는 `area_cde`를 부산 구/군명으로 변환하고, 이미지가 없으면 `src/assets/place-thumb-default.svg`를 기본 이미지로 사용한다.
+- 별점·카테고리·좌표는 목록 DTO에 없다. 프론트 목록 화면은 `postCnt`를 후기 수로, `likeCnt`를 좋아요 수로 매핑한다. (현재 프론트는 `VITE_USE_MOCK=true` 시드로도 동작.)
+- 현재 위치 검색 요청은 request body에 `x=경도`, `y=위도`, `radius=1000` 형태의 `PlaceRequestDto`를 담아 보낸다. 프론트 개발 모드에서는 위치 권한 실패 시 부산 시청 좌표를 fallback으로 사용한다.
 
 ---
 

@@ -4,13 +4,24 @@ import { computed, ref, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { usePlaceListStore } from '../store/placeListStore'
 import { formatDistance } from '@/shared/utils/geo'
+import { useInfiniteScroll } from '@/shared/composables/useInfiniteScroll'
 import PlaceListItem from '../components/PlaceListItem.vue'
 import PlaceFeaturedCard from '../components/PlaceFeaturedCard.vue'
 import DistrictSheet from '../components/DistrictSheet.vue'
 
 const store = usePlaceListStore()
-const { visiblePlaces, loading, error, locating, usingFallback, location, mode, district } =
-  storeToRefs(store)
+const {
+  visiblePlaces,
+  loading,
+  loadingMore,
+  error,
+  locating,
+  usingFallback,
+  location,
+  mode,
+  district,
+} = storeToRefs(store)
+const { setSentinel } = useInfiniteScroll(() => store.loadMore())
 
 const districtSheet = ref(false)
 
@@ -38,7 +49,7 @@ const featuredTag = computed(() => {
     const d = featured.value.distanceM
     return d != null ? `가장 가까워요 · ${formatDistance(d)}` : '가장 가까워요'
   }
-  return district.value === '전체' ? '부산 인기 1위' : `${district.value} 인기 1위`
+  return null
 })
 
 // --- 빈 상태 ---
@@ -72,24 +83,25 @@ onMounted(() => store.init())
         지금 부산,<br />
         <span class="hd__hl">
           {{ headline }}
-          <svg class="hd__underline" viewBox="0 0 140 12" preserveAspectRatio="none" aria-hidden="true">
-            <path d="M3 8.5 C35 3.5 90 11 137 5.5" stroke="#B0234A" stroke-width="4.5" fill="none" stroke-linecap="round" />
+          <svg
+            class="hd__underline"
+            viewBox="0 0 140 12"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M3 8.5 C35 3.5 90 11 137 5.5"
+              stroke="#B0234A"
+              stroke-width="4.5"
+              fill="none"
+              stroke-linecap="round"
+            />
           </svg>
         </span>
       </h1>
 
       <!-- 세그먼트 컨트롤 -->
       <div class="segment" role="tablist" aria-label="탐색 모드">
-        <button
-          role="tab"
-          :aria-selected="mode === 'nearby'"
-          class="seg-btn"
-          :class="{ 'seg-btn--on': mode === 'nearby' }"
-          type="button"
-          @click="switchMode('nearby')"
-        >
-          <v-icon icon="mdi-crosshairs-gps" size="15" class="seg-btn__icon" />내 주변
-        </button>
         <button
           role="tab"
           :aria-selected="mode === 'district'"
@@ -99,6 +111,16 @@ onMounted(() => store.init())
           @click="switchMode('district')"
         >
           <v-icon icon="mdi-map-outline" size="15" class="seg-btn__icon" />지역별
+        </button>
+        <button
+          role="tab"
+          :aria-selected="mode === 'nearby'"
+          class="seg-btn"
+          :class="{ 'seg-btn--on': mode === 'nearby' }"
+          type="button"
+          @click="switchMode('nearby')"
+        >
+          <v-icon icon="mdi-crosshairs-gps" size="15" class="seg-btn__icon" />내 주변
         </button>
       </div>
 
@@ -114,12 +136,7 @@ onMounted(() => store.init())
       </button>
 
       <!-- 지역별: 구/군 선택 -->
-      <button
-        v-else
-        class="distpill"
-        type="button"
-        @click="districtSheet = true"
-      >
+      <button v-else class="distpill" type="button" @click="districtSheet = true">
         <v-icon icon="mdi-map-marker-outline" size="15" />
         {{ district === '전체' ? '지역 선택' : district }}
         <v-icon icon="mdi-chevron-down" size="16" />
@@ -181,14 +198,13 @@ onMounted(() => store.init())
           :show-distance="mode === 'nearby'"
         />
       </div>
+      <div :ref="setSentinel" class="list__sentinel">
+        <v-progress-circular v-if="loadingMore" indeterminate color="primary" size="26" width="3" />
+      </div>
     </template>
 
     <!-- 지역 선택 시트 -->
-    <DistrictSheet
-      v-model="districtSheet"
-      :selected="district"
-      @select="store.setDistrict"
-    />
+    <DistrictSheet v-model="districtSheet" :selected="district" @select="store.setDistrict" />
   </div>
 </template>
 
@@ -206,7 +222,7 @@ onMounted(() => store.init())
 }
 .hd__hl {
   position: relative;
-  color: #B0234A;
+  color: #b0234a;
   white-space: nowrap;
 }
 .hd__underline {
@@ -258,7 +274,7 @@ onMounted(() => store.init())
 }
 .seg-btn--on .seg-btn__icon {
   opacity: 1;
-  color: #B0234A;
+  color: #b0234a;
 }
 
 /* 위치 pill / 지역 pill */
@@ -278,16 +294,23 @@ onMounted(() => store.init())
 }
 .locpill {
   background: var(--brand-tint);
-  color: #8E1B3A;
+  color: #8e1b3a;
 }
-.locpill:hover { background: var(--brand-tint-strong); }
-.locpill:disabled { opacity: 0.6; cursor: default; }
+.locpill:hover {
+  background: var(--brand-tint-strong);
+}
+.locpill:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
 
 .distpill {
   background: var(--brand-tint);
-  color: #8E1B3A;
+  color: #8e1b3a;
 }
-.distpill:hover { background: var(--brand-tint-strong); }
+.distpill:hover {
+  background: var(--brand-tint-strong);
+}
 
 .featured {
   margin-bottom: 22px;
@@ -296,6 +319,12 @@ onMounted(() => store.init())
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+.list__sentinel {
+  min-height: 1px;
+  display: flex;
+  justify-content: center;
+  padding: 18px 0 2px;
 }
 
 /* 스켈레톤 */
@@ -357,6 +386,8 @@ onMounted(() => store.init())
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .seg-btn { transition: none; }
+  .seg-btn {
+    transition: none;
+  }
 }
 </style>

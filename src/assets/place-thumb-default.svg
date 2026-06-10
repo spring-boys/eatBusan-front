@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none" role="img" aria-label="eatBusan 기본 음식점 이미지">
+  <defs>
+    <linearGradient id="bg" x1="74" y1="38" x2="438" y2="488" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF8F2" />
+      <stop offset="0.62" stop-color="#FAF0E8" />
+      <stop offset="1" stop-color="#F4E2DA" />
+    </linearGradient>
+    <linearGradient id="mark" x1="166" y1="134" x2="346" y2="352" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#C7335B" />
+      <stop offset="1" stop-color="#8E1B3A" />
+    </linearGradient>
+    <filter id="softShadow" x="115" y="94" width="282" height="292" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#8E1B3A" flood-opacity="0.18" />
+    </filter>
+    <pattern id="grain" width="42" height="42" patternUnits="userSpaceOnUse">
+      <circle cx="8" cy="8" r="2" fill="#B0234A" opacity="0.045" />
+      <circle cx="30" cy="26" r="1.6" fill="#E8A53D" opacity="0.12" />
+    </pattern>
+  </defs>
+
+  <rect width="512" height="512" fill="url(#bg)" />
+  <rect width="512" height="512" fill="url(#grain)" />
+  <path d="M0 366C61 333 132 331 203 365C294 409 374 401 512 337V512H0V366Z" fill="#FFFFFF" opacity="0.42" />
+  <path d="M72 92C119 66 176 60 232 77C289 94 325 128 381 125C427 123 465 105 512 72V0H0V137C20 120 43 107 72 92Z" fill="#FFFFFF" opacity="0.32" />
+
+  <g opacity="0.18">
+    <path d="M78 178H160" stroke="#B0234A" stroke-width="13" stroke-linecap="round" />
+    <path d="M352 178H434" stroke="#B0234A" stroke-width="13" stroke-linecap="round" />
+    <path d="M74 214H136" stroke="#E8A53D" stroke-width="13" stroke-linecap="round" />
+    <path d="M376 214H438" stroke="#E8A53D" stroke-width="13" stroke-linecap="round" />
+  </g>
+
+  <g filter="url(#softShadow)">
+    <circle cx="256" cy="236" r="130" fill="#FFFFFF" />
+    <circle cx="256" cy="236" r="108" fill="url(#mark)" />
+    <circle cx="256" cy="236" r="128" stroke="#B0234A" stroke-opacity="0.12" stroke-width="4" />
+
+    <path d="M209 151C194 169 196 187 213 205" stroke="#E8A53D" stroke-width="9" stroke-linecap="round" />
+    <path d="M256 136C240 158 242 178 260 197" stroke="#E8A53D" stroke-width="9" stroke-linecap="round" />
+    <path d="M303 151C288 169 290 187 307 205" stroke="#E8A53D" stroke-width="9" stroke-linecap="round" />
+
+    <text
+      x="256"
+      y="247"
+      text-anchor="middle"
+      dominant-baseline="central"
+      fill="#FFFFFF"
+      font-family="'Pretendard Variable', Pretendard, system-ui, sans-serif"
+      font-size="142"
+      font-weight="800"
+      letter-spacing="-4"
+    >e</text>
+    <path d="M198 309C230 328 282 329 316 306" stroke="#FFFFFF" stroke-width="13" stroke-linecap="round" />
+  </g>
+
+  <text
+    x="256"
+    y="417"
+    text-anchor="middle"
+    font-family="'Pretendard Variable', Pretendard, system-ui, sans-serif"
+    font-size="43"
+    font-weight="800"
+    letter-spacing="-2"
+  ><tspan fill="#211A17">eat</tspan><tspan fill="#B0234A">Busan</tspan></text>
+  <path d="M171 443C220 456 292 456 344 440" stroke="#B0234A" stroke-width="7" stroke-linecap="round" />
+</svg>

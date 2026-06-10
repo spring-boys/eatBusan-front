@@ -1,6 +1,6 @@
 <script setup>
 // 가장 인기 있는 #1 식당을 크게 띄우는 편집형 히어로 카드.
-import { formatDistance } from '@/shared/utils/geo'
+import { computed } from 'vue'
 
 const props = defineProps({
   /** @type {import('../types/place.js').PlaceResponse} */
@@ -8,12 +8,26 @@ const props = defineProps({
   /** 카드 좌상단 태그 텍스트. null이면 숨김 */
   tagText: { type: String, default: null },
 })
+
+const hasRating = computed(() => Number.isFinite(props.place.rating))
+const metricIcon = computed(() => (hasRating.value ? 'mdi-star' : 'mdi-heart'))
+const metricColor = computed(() => (hasRating.value ? 'warning' : 'secondary'))
+const metricText = computed(() =>
+  hasRating.value ? props.place.rating.toFixed(1) : `좋아요 ${props.place.likeCount ?? 0}`,
+)
+const reviewText = computed(() => `후기 ${props.place.reviewCount ?? props.place.postCnt ?? 0}`)
 </script>
 
 <template>
   <router-link :to="`/places/${place.id}`" class="feat">
     <div class="feat__media">
-      <v-img v-if="place.thumbnailUrl" :src="place.thumbnailUrl" :alt="place.name" :aspect-ratio="3 / 2" cover />
+      <v-img
+        v-if="place.thumbnailUrl"
+        :src="place.thumbnailUrl"
+        :alt="place.name"
+        :aspect-ratio="3 / 2"
+        cover
+      />
       <div v-else class="feat__ph"><v-icon icon="mdi-storefront-outline" size="48" /></div>
     </div>
     <div class="feat__scrim"></div>
@@ -26,9 +40,9 @@ const props = defineProps({
       <span class="feat__cat">{{ place.category }}</span>
       <h2 class="feat__name">{{ place.name }}</h2>
       <div class="feat__meta">
-        <v-icon icon="mdi-star" size="16" color="#E8A53D" aria-hidden="true" />
-        <strong>{{ place.rating.toFixed(1) }}</strong>
-        <span class="feat__rev">후기 {{ place.reviewCount }}</span>
+        <v-icon :icon="metricIcon" size="16" :color="metricColor" aria-hidden="true" />
+        <strong>{{ metricText }}</strong>
+        <span class="feat__rev">{{ reviewText }}</span>
       </div>
     </div>
   </router-link>
@@ -77,7 +91,7 @@ const props = defineProps({
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: #B0234A;
+  background: #b0234a;
   color: #fff;
   font-size: 12.5px;
   font-weight: 800;
@@ -122,7 +136,11 @@ const props = defineProps({
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .feat { transition: none; }
-  .feat:hover { transform: none; }
+  .feat {
+    transition: none;
+  }
+  .feat:hover {
+    transform: none;
+  }
 }
 </style>

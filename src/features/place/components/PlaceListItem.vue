@@ -1,8 +1,9 @@
 <script setup>
 // 식당 리스트 한 줄 (편집형). 가까운 순 순위 번호 + 강한 이름 타이포. 탭하면 상세로 이동.
+import { computed } from 'vue'
 import { formatDistance } from '@/shared/utils/geo'
 
-defineProps({
+const props = defineProps({
   /** @type {import('../types/place.js').PlaceResponse} */
   place: { type: Object, required: true },
   /** 순위 번호. null이면 숨김 */
@@ -10,33 +11,57 @@ defineProps({
   /** 거리 표시 여부 (내 주변 모드에서만 true) */
   showDistance: { type: Boolean, default: true },
 })
+
+const hasRating = computed(() => Number.isFinite(props.place.rating))
+const metricIcon = computed(() => (hasRating.value ? 'mdi-star' : 'mdi-heart'))
+const metricColor = computed(() => (hasRating.value ? 'warning' : 'secondary'))
+const metricText = computed(() =>
+  hasRating.value ? props.place.rating.toFixed(1) : `좋아요 ${props.place.likeCount ?? 0}`,
+)
+const reviewText = computed(() => `후기 ${props.place.reviewCount ?? props.place.postCnt ?? 0}`)
+const shortAddress = computed(() => props.place.address.replace(/^부산 [^\s]+ /, ''))
 </script>
 
 <template>
   <router-link :to="`/places/${place.id}`" class="place">
-    <span v-if="rank != null" class="place__rank" :class="{ 'place__rank--top': rank <= 3 }" aria-hidden="true">
+    <span
+      v-if="rank != null"
+      class="place__rank"
+      :class="{ 'place__rank--top': rank <= 3 }"
+      aria-hidden="true"
+    >
       {{ rank }}
     </span>
 
     <div class="place__thumb">
-      <v-img v-if="place.thumbnailUrl" :src="place.thumbnailUrl" :alt="place.name" :aspect-ratio="1" cover />
+      <v-img
+        v-if="place.thumbnailUrl"
+        :src="place.thumbnailUrl"
+        :alt="place.name"
+        :aspect-ratio="1"
+        cover
+      />
       <div v-else class="place__thumb-ph"><v-icon icon="mdi-storefront-outline" size="24" /></div>
     </div>
 
     <div class="place__info">
       <h3 class="place__name">{{ place.name }}</h3>
       <div class="place__rating">
-        <v-icon icon="mdi-star" size="15" color="#E8A53D" aria-hidden="true" />
-        <span class="place__score">{{ place.rating.toFixed(1) }}</span>
-        <span class="place__rev">후기 {{ place.reviewCount }}</span>
+        <v-icon :icon="metricIcon" size="15" :color="metricColor" aria-hidden="true" />
+        <span class="place__score">{{ metricText }}</span>
+        <span class="place__rev">{{ reviewText }}</span>
         <span class="place__cat">· {{ place.category }}</span>
       </div>
       <div class="place__meta">
         <span v-if="showDistance && place.distanceM != null" class="place__dist">
-          <v-icon icon="mdi-map-marker" size="13" aria-hidden="true" />{{ formatDistance(place.distanceM) }}
+          <v-icon icon="mdi-map-marker" size="13" aria-hidden="true" />{{
+            formatDistance(place.distanceM)
+          }}
         </span>
-        <span v-if="!showDistance && place.district" class="place__district">{{ place.district }}</span>
-        <span class="place__addr">{{ place.address.replace(/^부산 [^\s]+ /, '') }}</span>
+        <span v-if="!showDistance && place.district" class="place__district">{{
+          place.district
+        }}</span>
+        <span class="place__addr">{{ shortAddress }}</span>
       </div>
     </div>
 
@@ -78,7 +103,7 @@ defineProps({
   color: rgba(31, 26, 23, 0.28);
 }
 .place__rank--top {
-  color: #B0234A;
+  color: #b0234a;
 }
 
 .place__thumb {
@@ -152,13 +177,13 @@ defineProps({
   gap: 1px;
   flex: none;
   font-weight: 800;
-  color: #B0234A;
+  color: #b0234a;
 }
 .place__district {
   flex: none;
   font-size: 12px;
   font-weight: 700;
-  color: #B0234A;
+  color: #b0234a;
   background: rgba(176, 35, 74, 0.1);
   padding: 2px 7px;
   border-radius: 9999px;
