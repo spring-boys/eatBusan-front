@@ -36,12 +36,22 @@ function normalizePost(dto) {
   const id = Number(dto.id ?? dto.postId)
   if (!Number.isFinite(id)) throw new Error('invalid post id')
   const email = String(dto.email ?? '')
+  // 백엔드 images(PostImageDto[], sortOrder 오름차순) — 첫 장을 대표 이미지로, 전체는 갤러리용으로 보존
+  const rawImages = Array.isArray(dto.images) ? dto.images : []
+  const images = rawImages.map((img) => ({
+    imageUrl: String(img.imageUrl ?? ''),
+    sortOrder: Number(img.sortOrder ?? 0),
+  }))
+  const thumbnailUrl = dto.thumbnailUrl ?? rawImages[0]?.imageUrl ?? null
 
   return {
     id,
+    placeId: Number(dto.placeId ?? 0),
     title: String(dto.title ?? ''),
     content: String(dto.content ?? ''),
-    thumbnailUrl: dto.thumbnailUrl ? String(dto.thumbnailUrl) : null,
+    thumbnailUrl: thumbnailUrl ? String(thumbnailUrl) : null,
+    images,
+    authorEmail: email,
     authorNickname: String(dto.authorNickname ?? (email ? email.split('@')[0] : '익명')),
     authorProfileUrl: dto.authorProfileUrl ? String(dto.authorProfileUrl) : null,
     viewCount: toCount(dto.viewCount),
@@ -67,7 +77,10 @@ export async function fetchPosts(page, size) {
 
   try {
     const { data } = await apiClient.get('/posts')
-    const list = unwrapPostList(data).map(normalizePost)
+    // 백엔드는 오래된 순(id 오름차순)으로 반환 — 피드는 최신 글이 위로 와야 한다
+    const list = unwrapPostList(data)
+      .map(normalizePost)
+      .sort((a, b) => b.id - a.id)
     if (import.meta.env.DEV && list.length === 0) return fetchMock()
     const start = Math.max(page - 1, 0) * size
     return list.slice(start, start + size)
@@ -123,11 +136,12 @@ export async function fetchPost(postId) {
 }
 
 /**
- * 후기 작성 (인증 필요)
+ * 후기 작성 (인증 필요). 사진이 있으면 multipart(post JSON part + files)로 한 번에 업로드한다.
  * @param {PostRequest} body
+ * @param {File[]} [files]  첨부 사진 (없으면 JSON 요청)
  * @returns {Promise<PostResponse>}
  */
-export async function createPost(body) {
+export async function createPost(body, files = []) {
   const fetchMock = async () => {
     const { mockCreatePost } = await import('./mockPosts')
     return mockCreatePost(body)
@@ -135,7 +149,14 @@ export async function createPost(body) {
   if (USE_MOCK) return fetchMock()
 
   try {
-    const { data } = await apiClient.post('/posts', body)
+    if (files.length === 0) {
+      const { data } = await apiClient.post('/posts', body)
+      return normalizePost(data)
+    }
+    const form = new FormData()
+    form.append('post', new Blob([JSON.stringify(body)], { type: 'application/json' }))
+    files.forEach((file) => form.append('files', file))
+    const { data } = await apiClient.post('/posts', form)
     return normalizePost(data)
   } catch (error) {
     if (shouldUseMockFallback(error)) return fetchMock()

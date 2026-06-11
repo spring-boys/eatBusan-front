@@ -2,6 +2,7 @@
 // 후기 피드 (홈 = 피드). 사진 중심 세로 단일 컬럼, 무한 스크롤.
 // 패턴: store에서 상태/액션을 가져오고 로딩/에러/빈/추가로딩 상태를 모두 처리한다.
 import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { usePostFeedStore } from '../store/postFeedStore'
 import { useInfiniteScroll } from '@/shared/composables/useInfiniteScroll'
@@ -9,6 +10,7 @@ import PostCard from '../components/PostCard.vue'
 import PostCardSkeleton from '../components/PostCardSkeleton.vue'
 import CommentSheet from '@/features/comment/components/CommentSheet.vue'
 
+const router = useRouter()
 const store = usePostFeedStore()
 const { posts, loading, loadingMore, error, hasMore } = storeToRefs(store)
 
@@ -19,6 +21,9 @@ const commentPostId = ref(null)
 function openComments(id) {
   commentPostId.value = id
   commentOpen.value = true
+}
+function goDetail(id) {
+  router.push({ name: 'post-detail', params: { id } })
 }
 function onCommentAdded(id) {
   const target = posts.value.find((p) => p.id === id)
@@ -35,7 +40,22 @@ onMounted(() => {
     <header class="feed__head">
       <h1 class="feed__title">
         다녀온 사람들의<br />
-        진짜 <span class="feed__hl">후기<svg class="feed__ul" viewBox="0 0 120 12" preserveAspectRatio="none" aria-hidden="true"><path d="M3 8.5 C28 3.5 72 11 117 5.5" stroke="#B0234A" stroke-width="4.5" fill="none" stroke-linecap="round" /></svg></span>
+        진짜
+        <span class="feed__hl"
+          >후기<svg
+            class="feed__ul"
+            viewBox="0 0 120 12"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M3 8.5 C28 3.5 72 11 117 5.5"
+              stroke="#B0234A"
+              stroke-width="4.5"
+              fill="none"
+              stroke-linecap="round"
+            /></svg
+        ></span>
       </h1>
       <p class="feed__sub">부산 곳곳, 사진 한 컷으로 만나는 맛집</p>
     </header>
@@ -66,6 +86,7 @@ onMounted(() => {
           v-for="post in posts"
           :key="post.id"
           :post="post"
+          @open="goDetail"
           @like="store.toggleLike"
           @comment="openComments"
         />
@@ -101,7 +122,7 @@ onMounted(() => {
 }
 .feed__hl {
   position: relative;
-  color: #B0234A;
+  color: #b0234a;
   white-space: nowrap;
 }
 .feed__ul {

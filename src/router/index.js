@@ -25,6 +25,19 @@ const router = createRouter({
       component: () => import('@/features/post/views/PostFeedView.vue'),
     },
     {
+      path: '/posts/:id',
+      name: 'post-detail',
+      // 후기 상세 (단건 조회 + 댓글 시트 + 좋아요 + 본인 글 수정·삭제)
+      component: () => import('@/features/post/views/PostDetailView.vue'),
+    },
+    {
+      path: '/posts/:id/edit',
+      name: 'post-edit',
+      // 후기 수정 (전체화면, title·content만 편집 가능 — 백엔드 PATCH 스펙)
+      meta: { chrome: false },
+      component: () => import('@/features/post/views/EditPostView.vue'),
+    },
+    {
       path: '/login',
       name: 'login',
       // 로그인 (전체화면 — 상단바/하단탭 숨김)

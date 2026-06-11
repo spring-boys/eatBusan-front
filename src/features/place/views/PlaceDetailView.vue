@@ -19,7 +19,8 @@ const metricColor = computed(() => (hasRating.value ? 'warning' : 'secondary'))
 const metricText = computed(() =>
   hasRating.value ? place.value.rating.toFixed(1) : `좋아요 ${place.value?.likeCount ?? 0}`,
 )
-const reviewText = computed(() => `후기 ${place.value?.reviewCount ?? place.value?.postCnt ?? 0}`)
+// 단건 API(GET /api/places/{id})에는 postCnt가 없어 place.reviewCount는 항상 0 → 로드된 후기 목록 길이가 진실.
+const reviewText = computed(() => `후기 ${reviews.value.length || (place.value?.reviewCount ?? 0)}`)
 
 const commentOpen = ref(false)
 const commentPostId = ref(null)
@@ -61,6 +62,25 @@ async function share() {
 function back() {
   if (window.history.length > 1) router.back()
   else router.push('/')
+}
+
+// 후기 카드 클릭 → 후기 상세 (PostCard 의 open 이벤트 — 피드와 동일 동선)
+function goReviewDetail(reviewId) {
+  router.push({ name: 'post-detail', params: { id: reviewId } })
+}
+
+// 후기 쓰기 — 현재 가게가 선택된 상태로 작성 화면 진입
+function writeReview() {
+  const id = Number(place.value?.id)
+  // 백엔드 응답이 비정상이면 id가 NaN — 깨진 placeId로 작성 화면에 보내지 않는다
+  if (!Number.isFinite(id) || !place.value?.name) {
+    showToast('가게 정보를 불러오지 못했어요. 잠시 후 다시 시도해주세요.')
+    return
+  }
+  router.push({
+    name: 'write',
+    query: { placeId: id, placeName: place.value.name },
+  })
 }
 
 watch(
@@ -142,7 +162,7 @@ watch(
             size="small"
             rounded="lg"
             prepend-icon="mdi-pencil"
-            @click="showToast('후기 작성은 곧 만나요')"
+            @click="writeReview"
           >
             후기 쓰기
           </v-btn>
@@ -156,6 +176,7 @@ watch(
             v-for="review in reviews"
             :key="review.id"
             :post="review"
+            @open="goReviewDetail"
             @like="store.toggleReviewLike"
             @comment="openComments"
           />

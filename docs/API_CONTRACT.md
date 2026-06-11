@@ -51,6 +51,7 @@
 | 동작 | Method | Path | 인증 |
 |------|--------|------|------|
 | 목록(전체) | GET | `/api/posts` | - |
+| 가게별 목록 | GET | `/api/places/{placeId}/posts` | - |
 | 단건 | GET | `/api/posts/{postId}` | - |
 | 작성 | POST | `/api/posts` | ✅ |
 | 수정 | PATCH | `/api/posts/{postId}` | ✅ |
@@ -65,11 +66,13 @@
 {
   "postId": 1, "userId": 1, "placeId": 7, "email": "user@busan.com",
   "title": "해운대 맛집", "content": "...",
-  "viewCount": 10, "likeCount": 12, "commentCount": 3,
+  "viewCount": 10, "likeCount": 12, "commentCount": 3, "liked": false,
   "createdAt": "2026-06-04T10:00:00", "updatedAt": "2026-06-04T10:00:00"
 }
 ```
 - 목록은 `PostResponseDto[]` (페이지네이션 없음). 삭제 204.
+- 가게별 목록(2026-06-11 추가, post 도메인 `PlacePostController`)은 해당 가게의 미삭제 후기를 **id 내림차순(최신순)** 으로 반환. 가게 상세 화면의 후기 목록이 사용한다. 전체 목록(`GET /api/posts`)은 오래된 순이므로 프론트(`fetchPosts`)가 최신순으로 재정렬한다.
+- `liked` (2026-06-11 추가): 요청에 유효한 `Authorization` 토큰이 있으면 **해당 사용자의 좋아요 여부**, 없으면 `false`. 목록(전체/가게별)·단건·수정 응답 모두 포함 — 새로고침 후에도 하트 상태가 복원된다.
 - ⚠️ **프론트 불일치**: `src/features/post/types/post.js` 의 `PostResponse`(`id`/`authorNickname`/`thumbnailUrl`/`liked` 등)는 **프론트 제안 초안**이라 백엔드와 필드가 다르다. 실제 연동 시 백엔드 필드(`postId`, `email`, …)에 맞춰 매핑하거나 백엔드 DTO에 닉네임/대표이미지 추가를 합의해야 한다.
 
 ---

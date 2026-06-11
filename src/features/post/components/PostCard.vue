@@ -6,11 +6,18 @@ defineProps({
   /** @type {import('../types/post.js').PostResponse} */
   post: { type: Object, required: true },
 })
-const emit = defineEmits(['like', 'comment'])
+const emit = defineEmits(['like', 'comment', 'open'])
 </script>
 
 <template>
-  <article class="post-card">
+  <!-- 카드 전체 클릭 → 상세 화면. 좋아요·댓글 버튼은 .stop 으로 이벤트 버블을 차단한다. -->
+  <article
+    class="post-card"
+    role="button"
+    tabindex="0"
+    @click="emit('open', post.id)"
+    @keydown.enter="emit('open', post.id)"
+  >
     <!-- 대표 사진: 카드 폭을 꽉 채운다. 없으면 텍스트 카드로 우아하게. -->
     <div v-if="post.thumbnailUrl" class="post-card__media">
       <v-img :src="post.thumbnailUrl" :alt="post.title" :aspect-ratio="4 / 3" cover>
@@ -49,13 +56,22 @@ const emit = defineEmits(['like', 'comment'])
           :class="{ 'like--on': post.liked }"
           :aria-pressed="post.liked ?? false"
           :aria-label="post.liked ? '좋아요 취소' : '좋아요'"
-          @click="emit('like', post.id)"
+          @click.stop="emit('like', post.id)"
         >
-          <v-icon class="like__icon" :icon="post.liked ? 'mdi-heart' : 'mdi-heart-outline'" size="22" />
+          <v-icon
+            class="like__icon"
+            :icon="post.liked ? 'mdi-heart' : 'mdi-heart-outline'"
+            size="22"
+          />
           <span class="like__count">{{ post.likeCount }}</span>
         </button>
 
-        <button type="button" class="meta meta--btn" aria-label="댓글 보기" @click="emit('comment', post.id)">
+        <button
+          type="button"
+          class="meta meta--btn"
+          aria-label="댓글 보기"
+          @click.stop="emit('comment', post.id)"
+        >
           <v-icon icon="mdi-comment-outline" size="20" aria-hidden="true" />
           <span>{{ post.commentCount }}</span>
         </button>

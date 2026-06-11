@@ -58,9 +58,7 @@ const shortAddress = computed(() => props.place.address.replace(/^부산 [^\s]+ 
             formatDistance(place.distanceM)
           }}
         </span>
-        <span v-if="!showDistance && place.district" class="place__district">{{
-          place.district
-        }}</span>
+        <span v-if="place.district" class="place__district">{{ place.district }}</span>
         <span class="place__addr">{{ shortAddress }}</span>
       </div>
     </div>

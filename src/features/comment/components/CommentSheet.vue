@@ -1,7 +1,7 @@
 <script setup>
 // 댓글 하단 바텀시트. 후기 카드의 댓글 아이콘을 누르면 열린다.
 // 댓글 목록 + 작성 + (본인 댓글) 삭제. 상태는 commentStore에서 가져온다.
-import { ref, watch } from 'vue'
+import { nextTick, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useCommentStore } from '../store/commentStore'
 import { formatRelativeTime } from '@/shared/utils/time'
@@ -17,13 +17,21 @@ const { comments, loading, error } = storeToRefs(store)
 
 const draft = ref('')
 const submitting = ref(false)
+const bodyEl = ref(null)
+
+// 최신 댓글이 맨 아래에 있으므로, 열거나 작성한 직후 바닥으로 스크롤해 바로 보이게 한다
+async function scrollToBottom() {
+  await nextTick()
+  if (bodyEl.value) bodyEl.value.scrollTop = bodyEl.value.scrollHeight
+}
 
 watch(
   () => [props.modelValue, props.postId],
-  ([open, id]) => {
+  async ([open, id]) => {
     if (open && id != null) {
       draft.value = ''
-      store.loadComments(id, 1)
+      await store.loadComments(id, 1)
+      await scrollToBottom()
     }
   },
   { immediate: true },
@@ -37,6 +45,7 @@ async function submit() {
     await store.addComment(props.postId, content)
     draft.value = ''
     emit('added', props.postId)
+    await scrollToBottom()
   } finally {
     submitting.value = false
   }
@@ -69,7 +78,7 @@ function removeMine(id) {
         />
       </div>
 
-      <div class="sheet__body">
+      <div ref="bodyEl" class="sheet__body">
         <div v-if="loading" class="sheet__state">
           <v-progress-circular indeterminate color="primary" size="26" />
         </div>
