@@ -19,7 +19,8 @@ const metricColor = computed(() => (hasRating.value ? 'warning' : 'secondary'))
 const metricText = computed(() =>
   hasRating.value ? place.value.rating.toFixed(1) : `좋아요 ${place.value?.likeCount ?? 0}`,
 )
-const reviewText = computed(() => `후기 ${place.value?.reviewCount ?? place.value?.postCnt ?? 0}`)
+// 단건 API(GET /api/places/{id})에는 postCnt가 없어 place.reviewCount는 항상 0 → 로드된 후기 목록 길이가 진실.
+const reviewText = computed(() => `후기 ${reviews.value.length || (place.value?.reviewCount ?? 0)}`)
 
 const commentOpen = ref(false)
 const commentPostId = ref(null)
