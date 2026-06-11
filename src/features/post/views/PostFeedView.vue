@@ -2,6 +2,7 @@
 // 후기 피드 (홈 = 피드). 사진 중심 세로 단일 컬럼, 무한 스크롤.
 // 패턴: store에서 상태/액션을 가져오고 로딩/에러/빈/추가로딩 상태를 모두 처리한다.
 import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { usePostFeedStore } from '../store/postFeedStore'
 import { useInfiniteScroll } from '@/shared/composables/useInfiniteScroll'
@@ -9,6 +10,7 @@ import PostCard from '../components/PostCard.vue'
 import PostCardSkeleton from '../components/PostCardSkeleton.vue'
 import CommentSheet from '@/features/comment/components/CommentSheet.vue'
 
+const router = useRouter()
 const store = usePostFeedStore()
 const { posts, loading, loadingMore, error, hasMore } = storeToRefs(store)
 
@@ -19,6 +21,9 @@ const commentPostId = ref(null)
 function openComments(id) {
   commentPostId.value = id
   commentOpen.value = true
+}
+function goDetail(id) {
+  router.push({ name: 'post-detail', params: { id } })
 }
 function onCommentAdded(id) {
   const target = posts.value.find((p) => p.id === id)
@@ -66,6 +71,7 @@ onMounted(() => {
           v-for="post in posts"
           :key="post.id"
           :post="post"
+          @open="goDetail"
           @like="store.toggleLike"
           @comment="openComments"
         />
