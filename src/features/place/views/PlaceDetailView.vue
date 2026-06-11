@@ -64,6 +64,11 @@ function back() {
   else router.push('/')
 }
 
+// 후기 카드 클릭 → 후기 상세 (PostCard 의 open 이벤트 — 피드와 동일 동선)
+function goReviewDetail(reviewId) {
+  router.push({ name: 'post-detail', params: { id: reviewId } })
+}
+
 // 후기 쓰기 — 현재 가게가 선택된 상태로 작성 화면 진입
 function writeReview() {
   const id = Number(place.value?.id)
@@ -171,6 +176,7 @@ watch(
             v-for="review in reviews"
             :key="review.id"
             :post="review"
+            @open="goReviewDetail"
             @like="store.toggleReviewLike"
             @comment="openComments"
           />
