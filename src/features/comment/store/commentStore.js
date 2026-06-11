@@ -21,7 +21,8 @@ export const useCommentStore = defineStore('comment', () => {
         page: targetPage,
         size: PAGE_SIZE,
       })
-      comments.value = data
+      // 백엔드 커서는 최신순(id desc)으로 내려준다 — 화면은 채팅처럼 오래된 순(최신이 맨 아래)으로 표시
+      comments.value = [...data].reverse()
       page.value = targetPage
     } catch {
       error.value = '댓글을 불러오지 못했습니다.'
