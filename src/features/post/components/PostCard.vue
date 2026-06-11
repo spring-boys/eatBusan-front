@@ -58,11 +58,20 @@ const emit = defineEmits(['like', 'comment', 'open'])
           :aria-label="post.liked ? '좋아요 취소' : '좋아요'"
           @click.stop="emit('like', post.id)"
         >
-          <v-icon class="like__icon" :icon="post.liked ? 'mdi-heart' : 'mdi-heart-outline'" size="22" />
+          <v-icon
+            class="like__icon"
+            :icon="post.liked ? 'mdi-heart' : 'mdi-heart-outline'"
+            size="22"
+          />
           <span class="like__count">{{ post.likeCount }}</span>
         </button>
 
-        <button type="button" class="meta meta--btn" aria-label="댓글 보기" @click.stop="emit('comment', post.id)">
+        <button
+          type="button"
+          class="meta meta--btn"
+          aria-label="댓글 보기"
+          @click.stop="emit('comment', post.id)"
+        >
           <v-icon icon="mdi-comment-outline" size="20" aria-hidden="true" />
           <span>{{ post.commentCount }}</span>
         </button>
