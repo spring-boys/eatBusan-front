@@ -63,6 +63,20 @@ function back() {
   else router.push('/')
 }
 
+// 후기 쓰기 — 현재 가게가 선택된 상태로 작성 화면 진입
+function writeReview() {
+  const id = Number(place.value?.id)
+  // 백엔드 응답이 비정상이면 id가 NaN — 깨진 placeId로 작성 화면에 보내지 않는다
+  if (!Number.isFinite(id) || !place.value?.name) {
+    showToast('가게 정보를 불러오지 못했어요. 잠시 후 다시 시도해주세요.')
+    return
+  }
+  router.push({
+    name: 'write',
+    query: { placeId: id, placeName: place.value.name },
+  })
+}
+
 watch(
   () => route.params.id,
   (id) => store.load(Number(id)),
@@ -142,7 +156,7 @@ watch(
             size="small"
             rounded="lg"
             prepend-icon="mdi-pencil"
-            @click="showToast('후기 작성은 곧 만나요')"
+            @click="writeReview"
           >
             후기 쓰기
           </v-btn>
