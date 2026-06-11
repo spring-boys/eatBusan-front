@@ -1,30 +1,37 @@
-// 후기 피드 전역 상태 (Pinia). 무한 스크롤 + 좋아요 낙관적 업데이트를 관리한다.
+// 후기 피드 전역 상태 (Pinia). 무한 스크롤을 관리한다.
+// 후기 객체 자체는 postEntityStore 단일 사본을 공유 — 여기는 노출 순서(id 배열)만 가진다.
 // 비동기 호출은 반드시 loading/error 상태를 함께 다룬다.
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import * as postApi from '../api/postApi'
+import { usePostEntityStore } from './postEntityStore'
 
 const PAGE_SIZE = 8
 
 export const usePostFeedStore = defineStore('postFeed', () => {
-  /** @type {import('vue').Ref<import('../types/post.js').PostResponse[]>} */
-  const posts = ref([])
+  const entity = usePostEntityStore()
+
+  /** @type {import('vue').Ref<number[]>} 피드 노출 순서 (객체는 entity store 공유) */
+  const ids = ref([])
   const loading = ref(false) // 최초 로드
   const loadingMore = ref(false) // 다음 페이지 로드
   const error = ref(null)
   const page = ref(0)
   const hasMore = ref(true)
 
+  /** @type {import('vue').ComputedRef<import('../types/post.js').PostResponse[]>} */
+  const posts = computed(() => ids.value.map((id) => entity.get(id)).filter(Boolean))
+
   /** 첫 페이지 로드 (목록 교체). 재시도에도 사용. */
   async function loadFirst() {
     loading.value = true
     error.value = null
-    posts.value = []
+    ids.value = []
     page.value = 0
     hasMore.value = true
     try {
       const data = await postApi.fetchPosts(1, PAGE_SIZE)
-      posts.value = data
+      ids.value = entity.upsertAll(data)
       page.value = 1
       hasMore.value = data.length === PAGE_SIZE
     } catch {
@@ -41,7 +48,8 @@ export const usePostFeedStore = defineStore('postFeed', () => {
     try {
       const next = page.value + 1
       const data = await postApi.fetchPosts(next, PAGE_SIZE)
-      posts.value.push(...data)
+      const seen = new Set(ids.value)
+      ids.value.push(...entity.upsertAll(data).filter((id) => !seen.has(id)))
       page.value = next
       hasMore.value = data.length === PAGE_SIZE
     } catch {
@@ -52,25 +60,9 @@ export const usePostFeedStore = defineStore('postFeed', () => {
     }
   }
 
-  /** 좋아요 토글 (낙관적 업데이트 → 실패 시 롤백) */
-  async function toggleLike(postId) {
-    const post = posts.value.find((p) => p.id === postId)
-    if (!post) return
-
-    const prevLiked = post.liked ?? false
-    const prevCount = post.likeCount
-    post.liked = !prevLiked
-    post.likeCount = prevCount + (prevLiked ? -1 : 1)
-
-    try {
-      const res = await postApi.toggleLike(postId)
-      post.liked = res.liked
-      post.likeCount = res.likeCount
-    } catch {
-      // 인증 만료/네트워크 실패 등 → 원래 상태로 되돌린다.
-      post.liked = prevLiked
-      post.likeCount = prevCount
-    }
+  /** 좋아요 토글 — entity store 단일 구현으로 위임 (전 화면 동시 반영) */
+  function toggleLike(postId) {
+    return entity.toggleLike(postId)
   }
 
   return { posts, loading, loadingMore, error, hasMore, loadFirst, loadMore, toggleLike }

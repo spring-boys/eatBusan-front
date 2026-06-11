@@ -1,23 +1,32 @@
-// 후기 상세 전역 상태 (Pinia). 단건 로드·좋아요 낙관적 업데이트·수정·삭제를 관리한다.
+// 후기 상세 전역 상태 (Pinia). 단건 로드·수정·삭제를 관리한다.
+// 후기 객체는 postEntityStore 단일 사본을 공유 — 상세에서의 좋아요/댓글 변경이 피드·가게상세에 즉시 반영된다.
 // 비동기 호출은 반드시 loading/error 상태를 함께 다룬다.
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import * as postApi from '../api/postApi'
+import { usePostEntityStore } from './postEntityStore'
 import { useAuthStore } from '@/features/auth/store/authStore'
 
 export const usePostDetailStore = defineStore('postDetail', () => {
-  /** @type {import('vue').Ref<import('../types/post.js').PostResponse|null>} */
-  const post = ref(null)
+  const entity = usePostEntityStore()
+
+  /** @type {import('vue').Ref<number|null>} 현재 보고 있는 후기 id */
+  const currentId = ref(null)
   const loading = ref(false)
   const error = ref(null)
+
+  /** @type {import('vue').ComputedRef<import('../types/post.js').PostResponse|null>} */
+  const post = computed(() => (currentId.value != null ? entity.get(currentId.value) : null))
 
   /** 후기 단건 로드 */
   async function loadPost(id) {
     loading.value = true
     error.value = null
-    post.value = null
+    currentId.value = null
     try {
-      post.value = await postApi.fetchPost(Number(id))
+      const data = await postApi.fetchPost(Number(id))
+      entity.upsert(data)
+      currentId.value = data.id
     } catch {
       error.value = '후기를 불러오지 못했어요.'
     } finally {
@@ -25,22 +34,10 @@ export const usePostDetailStore = defineStore('postDetail', () => {
     }
   }
 
-  /** 좋아요 토글 — 낙관적 업데이트, 실패 시 롤백 */
-  async function toggleLike() {
-    if (!post.value) return
-    const prevLiked = post.value.liked ?? false
-    const prevCount = post.value.likeCount
-    post.value.liked = !prevLiked
-    post.value.likeCount = prevCount + (prevLiked ? -1 : 1)
-    try {
-      const res = await postApi.toggleLike(post.value.id)
-      post.value.liked = res.liked
-      post.value.likeCount = res.likeCount
-    } catch {
-      // 인증 만료·네트워크 실패 등 → 원래 상태로 되돌린다.
-      post.value.liked = prevLiked
-      post.value.likeCount = prevCount
-    }
+  /** 좋아요 토글 — entity store 단일 구현으로 위임 */
+  function toggleLike() {
+    if (currentId.value == null) return
+    return entity.toggleLike(currentId.value)
   }
 
   /**
@@ -62,7 +59,7 @@ export const usePostDetailStore = defineStore('postDetail', () => {
         title: payload.title,
         content: payload.content,
       })
-      post.value = updated
+      entity.upsert(updated)
       return true
     } catch {
       error.value = '수정에 실패했어요. 잠시 후 다시 시도해주세요.'
@@ -73,17 +70,18 @@ export const usePostDetailStore = defineStore('postDetail', () => {
   }
 
   /**
-   * 후기 삭제 (소프트 삭제 — 서버 204)
+   * 후기 삭제 (소프트 삭제 — 서버 204). 성공 시 entity 에서 제거 → 피드 등 모든 목록에서 사라진다.
    * ⚠️ 백엔드는 소유권 검증이 없다 — 여기선 UX 가드만(뷰에서 authorEmail 비교).
    * @returns {Promise<boolean>} 성공 여부
    */
   async function remove() {
-    if (!post.value) return false
+    if (currentId.value == null) return false
     loading.value = true
     error.value = null
     try {
-      await postApi.deletePost(post.value.id)
-      post.value = null
+      await postApi.deletePost(currentId.value)
+      entity.remove(currentId.value)
+      currentId.value = null
       return true
     } catch {
       error.value = '삭제에 실패했어요. 잠시 후 다시 시도해주세요.'
