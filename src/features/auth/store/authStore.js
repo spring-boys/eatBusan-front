@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import * as authApi from '../api/authApi'
 import { getAccessToken, clearAccessToken } from '@/shared/api/client'
+import { usePlaceLikeStore } from '@/features/placeLike/store/placeLikeStore'
 
 export const useAuthStore = defineStore('auth', () => {
   const accessToken = ref(getAccessToken())
@@ -19,6 +20,10 @@ export const useAuthStore = defineStore('auth', () => {
 
   function clearError() {
     error.value = null
+  }
+
+  function resetSessionStores() {
+    usePlaceLikeStore().reset()
   }
 
   async function loadMyInfo() {
@@ -50,6 +55,7 @@ export const useAuthStore = defineStore('auth', () => {
   async function login(payload) {
     loading.value = true
     error.value = null
+    resetSessionStores()
     try {
       accessToken.value = await authApi.login(payload)
       try {
@@ -81,6 +87,7 @@ export const useAuthStore = defineStore('auth', () => {
       accessToken.value = null
       setMemberEmail(null)
       clearAccessToken()
+      resetSessionStores()
       return false
     }
   }
@@ -93,6 +100,7 @@ export const useAuthStore = defineStore('auth', () => {
       accessToken.value = null
       setMemberEmail(null)
       clearAccessToken()
+      resetSessionStores()
     }
   }
 

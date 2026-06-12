@@ -9,6 +9,7 @@ export const usePlaceLikeStore = defineStore('placeLike', () => {
   /** @type {import('vue').Ref<import('../types/placeLike.js').PlaceLikeDetail[]>} */
   const myLikes = ref([])
   const loading = ref(false)
+  const loadingMore = ref(false)
   const error = ref(null)
   const hasMore = ref(true)
   const stale = ref(false)
@@ -16,7 +17,10 @@ export const usePlaceLikeStore = defineStore('placeLike', () => {
   /** 내 좋아요 목록 첫 페이지 로드 (교체) */
   async function loadMyLikes() {
     loading.value = true
+    loadingMore.value = false
     error.value = null
+    myLikes.value = []
+    hasMore.value = true
     try {
       const list = await placeLikeApi.fetchMyLikedPlaces({ size: PAGE_SIZE })
       myLikes.value = list
@@ -31,17 +35,19 @@ export const usePlaceLikeStore = defineStore('placeLike', () => {
 
   /** 다음 페이지 추가 로드 (마지막 placeLikeId 커서) */
   async function loadMore() {
-    if (!hasMore.value || loading.value || myLikes.value.length === 0) return
-    loading.value = true
+    if (!hasMore.value || loading.value || loadingMore.value || myLikes.value.length === 0) return
+    loadingMore.value = true
     try {
       const lastId = myLikes.value[myLikes.value.length - 1].placeLikeId
       const list = await placeLikeApi.fetchMyLikedPlaces({ lastId, size: PAGE_SIZE })
-      myLikes.value.push(...list)
-      hasMore.value = list.length === PAGE_SIZE
+      const seen = new Set(myLikes.value.map((p) => p.placeLikeId))
+      const next = list.filter((p) => !seen.has(p.placeLikeId))
+      myLikes.value.push(...next)
+      hasMore.value = list.length === PAGE_SIZE && next.length > 0
     } catch {
-      error.value = '더 불러오지 못했어요.'
+      hasMore.value = false
     } finally {
-      loading.value = false
+      loadingMore.value = false
     }
   }
 
@@ -60,5 +66,27 @@ export const usePlaceLikeStore = defineStore('placeLike', () => {
     stale.value = true
   }
 
-  return { myLikes, loading, error, hasMore, stale, loadMyLikes, loadMore, like, unlike, markStale }
+  function reset() {
+    myLikes.value = []
+    loading.value = false
+    loadingMore.value = false
+    error.value = null
+    hasMore.value = true
+    stale.value = false
+  }
+
+  return {
+    myLikes,
+    loading,
+    loadingMore,
+    error,
+    hasMore,
+    stale,
+    loadMyLikes,
+    loadMore,
+    like,
+    unlike,
+    markStale,
+    reset,
+  }
 })

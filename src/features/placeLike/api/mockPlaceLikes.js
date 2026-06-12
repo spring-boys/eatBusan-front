@@ -47,7 +47,8 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
  */
 export async function mockFetchMyLikedPlaces({ lastId, size = 10 } = {}) {
   await delay(320)
-  const source = lastId ? store.filter((p) => p.placeLikeId < lastId) : store
+  const ordered = [...store].sort((a, b) => a.placeLikeId - b.placeLikeId)
+  const source = lastId ? ordered.filter((p) => p.placeLikeId > lastId) : ordered
   return source.slice(0, size).map((p) => ({ ...p }))
 }
 
@@ -58,7 +59,7 @@ export async function mockLikePlace(placeId) {
   await delay(180)
   if (store.some((p) => p.placeId === Number(placeId))) return
   const nextId = Math.max(...store.map((p) => p.placeLikeId), 0) + 1
-  store.unshift({
+  store.push({
     placeLikeId: nextId,
     placeId: Number(placeId),
     code: `mock-${placeId}`,

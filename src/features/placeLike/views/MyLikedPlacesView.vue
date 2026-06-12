@@ -4,13 +4,15 @@ import { onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 import { usePlaceLikeStore } from '../store/placeLikeStore'
+import { useInfiniteScroll } from '@/shared/composables/useInfiniteScroll'
 
 const router = useRouter()
 const store = usePlaceLikeStore()
-const { myLikes, loading, error, stale } = storeToRefs(store)
+const { myLikes, loading, loadingMore, error } = storeToRefs(store)
+const { setSentinel } = useInfiniteScroll(() => store.loadMore())
 
 onMounted(() => {
-  if (stale.value || myLikes.value.length === 0) store.loadMyLikes()
+  store.loadMyLikes()
 })
 </script>
 
@@ -43,17 +45,22 @@ onMounted(() => {
       </v-btn>
     </div>
 
-    <ul v-else class="list">
-      <li v-for="p in myLikes" :key="p.placeLikeId">
-        <router-link :to="`/places/${p.placeId}`" class="row">
-          <div class="row__info">
-            <h3 class="row__name">{{ p.name }}</h3>
-            <p class="row__addr">{{ p.address }}</p>
-          </div>
-          <span class="row__like"> <v-icon icon="mdi-heart" size="15" />{{ p.likeCnt }} </span>
-        </router-link>
-      </li>
-    </ul>
+    <template v-else>
+      <ul class="list">
+        <li v-for="p in myLikes" :key="p.placeLikeId">
+          <router-link :to="`/places/${p.placeId}`" class="row">
+            <div class="row__info">
+              <h3 class="row__name">{{ p.name }}</h3>
+              <p class="row__addr">{{ p.address }}</p>
+            </div>
+            <span class="row__like"> <v-icon icon="mdi-heart" size="15" />{{ p.likeCnt }} </span>
+          </router-link>
+        </li>
+      </ul>
+      <div :ref="setSentinel" class="mylikes__sentinel">
+        <v-progress-circular v-if="loadingMore" indeterminate color="primary" size="24" width="3" />
+      </div>
+    </template>
   </div>
 </template>
 
@@ -126,5 +133,11 @@ onMounted(() => {
   font-size: 13px;
   font-weight: 800;
   color: var(--rose);
+}
+.mylikes__sentinel {
+  min-height: 1px;
+  display: flex;
+  justify-content: center;
+  padding: 18px 0 2px;
 }
 </style>
