@@ -4,7 +4,7 @@
 </script>
 
 <template>
-  <svg viewBox="0 0 300 82" fill="none" role="img" aria-label="eatBusan" class="bm">
+  <svg viewBox="0 0 220 82" fill="none" role="img" aria-label="eatBusan" class="bm">
     <!-- 워드마크: eat(잉크) + Busan(가넷) -->
     <text
       x="10"

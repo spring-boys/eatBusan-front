@@ -18,10 +18,10 @@ const handlePrimary = async () => {
 }
 
 const menu = [
-  { icon: 'mdi-pencil-outline', label: '후기 쓰기', to: '/write' },
-  { icon: 'mdi-format-list-bulleted', label: '내가 쓴 후기', to: '/my/posts' },
   { icon: 'mdi-heart-outline', label: '좋아요한 맛집', to: '/my/likes' },
-  { icon: 'mdi-cog-outline', label: '설정', to: null },
+  { icon: 'mdi-map-marker-check-outline', label: '내가 다녀온 맛집', to: '/my/posts' },
+  { icon: 'mdi-thumb-up-outline', label: '좋아요한 리뷰', to: null },
+  { icon: 'mdi-comment-text-outline', label: '작성한 댓글', to: null },
 ]
 </script>
 
