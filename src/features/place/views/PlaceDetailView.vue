@@ -10,17 +10,10 @@ import CommentSheet from '@/features/comment/components/CommentSheet.vue'
 const route = useRoute()
 const router = useRouter()
 const store = usePlaceDetailStore()
-const { place, reviews, loading, error } = storeToRefs(store)
+const { place, reviews, loading, liking, error } = storeToRefs(store)
 
 const heroImage = computed(() => place.value?.photos?.[0] ?? place.value?.thumbnailUrl ?? null)
-const hasRating = computed(() => Number.isFinite(place.value?.rating))
-const metricIcon = computed(() => (hasRating.value ? 'mdi-star' : 'mdi-heart'))
-const metricColor = computed(() => (hasRating.value ? 'warning' : 'secondary'))
-const metricText = computed(() =>
-  hasRating.value ? place.value.rating.toFixed(1) : `좋아요 ${place.value?.likeCount ?? 0}`,
-)
-// 단건 API(GET /api/places/{id})에는 postCnt가 없어 place.reviewCount는 항상 0 → 로드된 후기 목록 길이가 진실.
-const reviewText = computed(() => `후기 ${reviews.value.length || (place.value?.reviewCount ?? 0)}`)
+const metricText = computed(() => `좋아요 ${place.value?.likeCount ?? 0}`)
 
 const commentOpen = ref(false)
 const commentPostId = ref(null)
@@ -33,7 +26,6 @@ function onCommentAdded(id) {
   if (target) target.commentCount += 1
 }
 
-const saved = ref(false)
 const toast = ref(false)
 const toastText = ref('')
 const showToast = (msg) => {
@@ -41,22 +33,32 @@ const showToast = (msg) => {
   toast.value = true
 }
 
-function toggleSave() {
-  saved.value = !saved.value
-  showToast(saved.value ? '저장한 식당에 담았어요' : '저장을 해제했어요')
+async function togglePlaceLike() {
+  const wasLiked = place.value?.myLike ?? false
+  try {
+    await store.togglePlaceLike()
+    showToast(wasLiked ? '좋아요를 취소했어요' : '좋아요한 식당에 담았어요')
+  } catch (err) {
+    showToast(err?.response?.status === 401 ? '로그인이 필요해요' : '좋아요 처리에 실패했어요')
+  }
 }
 
-async function share() {
-  const title = place.value?.name ?? 'eatBusan'
-  if (navigator.share) {
-    try {
-      await navigator.share({ title, text: `${title} · eatBusan에서 보기` })
-    } catch {
-      /* 사용자가 공유 취소 — 무시 */
-    }
-  } else {
-    showToast('공유 링크를 준비 중이에요')
+function callPlace() {
+  const phone = place.value?.phone?.trim()
+  if (!phone) {
+    showToast('전화번호가 없어요')
+    return
   }
+  window.location.href = `tel:${phone.replace(/[^\d+]/g, '')}`
+}
+
+function openDirections() {
+  const url = place.value?.url?.trim()
+  if (!url) {
+    showToast('길찾기 정보를 찾지 못했어요')
+    return
+  }
+  window.open(url, '_blank', 'noopener,noreferrer')
 }
 
 function back() {
@@ -120,9 +122,8 @@ watch(
           <span class="hero__cat">{{ place.category }}</span>
           <h1 class="hero__name">{{ place.name }}</h1>
           <div class="hero__rating">
-            <v-icon :icon="metricIcon" size="17" :color="metricColor" aria-hidden="true" />
+            <v-icon icon="mdi-heart" size="17" color="secondary" aria-hidden="true" />
             <strong>{{ metricText }}</strong>
-            <span class="hero__rev">{{ reviewText }}</span>
             <span v-if="place.priceRange" class="hero__price">· {{ place.priceRange }}</span>
           </div>
         </div>
@@ -135,15 +136,21 @@ watch(
         </p>
 
         <div class="info__actions">
-          <button class="act" :class="{ 'act--on': saved }" type="button" @click="toggleSave">
-            <v-icon :icon="saved ? 'mdi-bookmark' : 'mdi-bookmark-outline'" size="20" />
-            <span>저장</span>
+          <button
+            class="act"
+            :class="{ 'act--on': place.myLike }"
+            type="button"
+            :disabled="liking"
+            @click="togglePlaceLike"
+          >
+            <v-icon :icon="place.myLike ? 'mdi-heart' : 'mdi-heart-outline'" size="20" />
+            <span>좋아요</span>
           </button>
-          <button class="act" type="button" @click="share">
-            <v-icon icon="mdi-share-variant-outline" size="20" />
-            <span>공유</span>
+          <button class="act" type="button" @click="callPlace">
+            <v-icon icon="mdi-phone-outline" size="20" />
+            <span>전화</span>
           </button>
-          <button class="act" type="button" @click="showToast('길찾기는 곧 만나요')">
+          <button class="act" type="button" @click="openDirections">
             <v-icon icon="mdi-directions" size="20" />
             <span>길찾기</span>
           </button>
@@ -153,9 +160,7 @@ watch(
       <!-- 후기 -->
       <section class="reviews">
         <div class="reviews__head">
-          <h2 class="reviews__title">
-            후기 <span class="reviews__count">{{ reviews.length }}</span>
-          </h2>
+          <h2 class="reviews__title">후기</h2>
           <v-btn
             variant="tonal"
             color="primary"
@@ -243,7 +248,6 @@ watch(
 .hero__rating strong {
   font-weight: 800;
 }
-.hero__rev,
 .hero__price {
   color: rgba(255, 255, 255, 0.8);
 }
@@ -313,6 +317,10 @@ watch(
 .act:active {
   transform: scale(0.96);
 }
+.act:disabled {
+  cursor: default;
+  opacity: 0.65;
+}
 .act--on {
   color: rgb(var(--v-theme-primary));
   background: rgba(var(--v-theme-primary), 0.09);
@@ -334,9 +342,6 @@ watch(
   font-weight: 800;
   letter-spacing: -0.03em;
   color: rgb(var(--v-theme-on-surface));
-}
-.reviews__count {
-  color: #b0234a;
 }
 .reviews__list {
   display: flex;

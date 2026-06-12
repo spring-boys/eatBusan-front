@@ -120,6 +120,7 @@
 | 전체 랜덤 목록 | GET | `/api/places` | - | `PlaceResponseListDto[]` |
 | 구역별 목록 | GET | `/api/places/area/{areaCode}?page=0&size=10` | - | `Page<PlaceResponseListDto>` (오프셋, page 0부터) |
 | 현재 위치 검색 | POST | `/api/places/search` | - | `PlaceRequestDto` 기준 현재 좌표 주변 `PlaceResponseListDto[]` |
+| 단건 상세 | GET | `/api/places/{id}` | 선택 | `PlaceResponseDto`, 토큰이 있으면 `myLike` 반영 |
 
 **목록 응답 (PlaceResponseListDto)**
 ```jsonc
@@ -127,7 +128,21 @@
 ```
 - 프론트는 `area_cde`를 부산 구/군명으로 변환하고, 이미지가 없으면 `src/assets/place-thumb-default.svg`를 기본 이미지로 사용한다.
 - 별점·카테고리·좌표는 목록 DTO에 없다. 프론트 목록 화면은 `postCnt`를 후기 수로, `likeCnt`를 좋아요 수로 매핑한다. (현재 프론트는 `VITE_USE_MOCK=true` 시드로도 동작.)
-- 현재 위치 검색 요청은 request body에 `x=경도`, `y=위도`, `radius=1000` 형태의 `PlaceRequestDto`를 담아 보낸다. 프론트 개발 모드에서는 위치 권한 실패 시 부산 시청 좌표를 fallback으로 사용한다.
+- 현재 위치 검색 요청은 위치를 얻었을 때 request body에 `x=경도`, `y=위도`, `radius=1000` 형태의 `PlaceRequestDto`를 담아 보낸다. 위치 권한 거부/실패 등으로 좌표가 없으면 프론트는 `Content-Type: application/json`으로 request body를 JSON `null`로 보내고, 임의 좌표 fallback은 백엔드 처리에 맡긴다.
+
+**상세 응답 (PlaceResponseDto)**
+```jsonc
+{
+  "id": 239,
+  "address": "부산 ...",
+  "area_code": "26350",
+  "name": "○○국밥",
+  "phone": "051-...",
+  "url": "https://place.map.kakao.com/...",
+  "likeCnt": 12,
+  "myLike": false
+}
+```
 
 ---
 

@@ -3,16 +3,22 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import * as placeApi from '../api/placeApi'
+import * as placeLikeApi from '@/features/placeLike/api/placeLikeApi'
+import { usePlaceListStore } from './placeListStore'
+import { usePlaceLikeStore } from '@/features/placeLike/store/placeLikeStore'
 import { usePostEntityStore } from '@/features/post/store/postEntityStore'
 
 export const usePlaceDetailStore = defineStore('placeDetail', () => {
   const postEntity = usePostEntityStore()
+  const placeList = usePlaceListStore()
+  const placeLike = usePlaceLikeStore()
 
   /** @type {import('vue').Ref<import('../types/place.js').PlaceResponse | null>} */
   const place = ref(null)
   /** @type {import('vue').Ref<number[]>} 후기 노출 순서 (객체는 entity store 공유) */
   const reviewIds = ref([])
   const loading = ref(false)
+  const liking = ref(false)
   const error = ref(null)
 
   /** @type {import('vue').ComputedRef<import('@/features/post/types/post.js').PostResponse[]>} */
@@ -30,6 +36,13 @@ export const usePlaceDetailStore = defineStore('placeDetail', () => {
         placeApi.fetchPlaceReviews(id),
       ])
       place.value = placeData
+      placeList.patchPlace({
+        id: placeData.id,
+        likeCount: placeData.likeCount,
+        myLike: placeData.myLike,
+        phone: placeData.phone,
+        url: placeData.url,
+      })
       reviewIds.value = postEntity.upsertAll(reviewData)
     } catch {
       error.value = '식당 정보를 불러오지 못했어요.'
@@ -43,5 +56,40 @@ export const usePlaceDetailStore = defineStore('placeDetail', () => {
     return postEntity.toggleLike(reviewId)
   }
 
-  return { place, reviews, loading, error, load, toggleReviewLike }
+  /** 식당 좋아요 토글 — 낙관적 업데이트 후 실패 시 롤백 */
+  async function togglePlaceLike() {
+    if (!place.value || liking.value) return
+
+    const prevLiked = place.value.myLike ?? false
+    const prevCount = Number.isFinite(place.value.likeCount) ? place.value.likeCount : 0
+    const nextLiked = !prevLiked
+
+    liking.value = true
+    place.value.myLike = nextLiked
+    place.value.likeCount = Math.max(0, prevCount + (nextLiked ? 1 : -1))
+    placeList.patchPlace({
+      id: place.value.id,
+      myLike: place.value.myLike,
+      likeCount: place.value.likeCount,
+    })
+
+    try {
+      if (nextLiked) await placeLikeApi.likePlace(place.value.id)
+      else await placeLikeApi.unlikePlace(place.value.id)
+      placeLike.markStale()
+    } catch (err) {
+      place.value.myLike = prevLiked
+      place.value.likeCount = prevCount
+      placeList.patchPlace({
+        id: place.value.id,
+        myLike: prevLiked,
+        likeCount: prevCount,
+      })
+      throw err
+    } finally {
+      liking.value = false
+    }
+  }
+
+  return { place, reviews, loading, liking, error, load, toggleReviewLike, togglePlaceLike }
 })

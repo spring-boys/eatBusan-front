@@ -258,7 +258,7 @@ function buildReviews(placeId) {
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
 function distanceScore(place, location) {
-  if (!location) return 0
+  if (!location || !Number.isFinite(location.lat) || !Number.isFinite(location.lng)) return 0
   const dLat = place.lat - location.lat
   const dLng = place.lng - location.lng
   return dLat * dLat + dLng * dLng
@@ -270,6 +270,9 @@ function toMockPlace(p) {
     areaCode: AREA_CODE_BY_DISTRICT[p.district],
     thumbnailUrl: defaultPlaceThumb,
     photos: [defaultPlaceThumb],
+    phone: p.phone ?? '051-123-4567',
+    url: p.url ?? `https://place.map.kakao.com/${p.id}`,
+    myLike: Boolean(p.myLike ?? false),
   }
 }
 
@@ -291,7 +294,7 @@ export async function mockFetchPlaces(options = {}) {
 
 /**
  * 현재 위치 기반 식당 검색.
- * @param {{ lat: number, lng: number }} location
+ * @param {{ lat: number, lng: number }|null} location
  * @returns {Promise<PlaceResponse[]>}
  */
 export async function mockSearchPlaces(location) {

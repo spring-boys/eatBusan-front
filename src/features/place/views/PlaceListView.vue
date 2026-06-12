@@ -16,7 +16,7 @@ const {
   loadingMore,
   error,
   locating,
-  usingFallback,
+  locationUnavailable,
   location,
   mode,
   district,
@@ -38,8 +38,9 @@ const headline = computed(() => {
 // --- 위치 pill 레이블 ---
 const locationLabel = computed(() => {
   if (locating.value) return '내 위치 찾는 중…'
+  if (locationUnavailable.value) return '위치 없이 검색'
   if (!location.value) return '위치 켜고 가까운 곳 보기'
-  return usingFallback.value ? '부산 중심가 기준' : '내 위치 기준'
+  return '내 위치 기준'
 })
 
 // --- 피처드 카드 태그 ---

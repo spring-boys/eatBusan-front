@@ -95,7 +95,7 @@ function extractBusanDistrict(address) {
  * @returns {PlaceResponse}
  */
 function normalizePlace(dto) {
-  const areaCode = String(dto.area_cde ?? dto.areaCode ?? dto.code ?? '')
+  const areaCode = String(dto.area_cde ?? dto.area_code ?? dto.areaCode ?? dto.code ?? '')
   const district =
     DISTRICT_BY_AREA_CODE[areaCode] ?? extractBusanDistrict(String(dto.address ?? ''))
   const lat = Number(dto.lat)
@@ -115,7 +115,10 @@ function normalizePlace(dto) {
     reviewCount: postCnt,
     postCnt,
     likeCount: likeCnt,
+    myLike: Boolean(dto.myLike ?? dto.liked ?? false),
     address: String(dto.address ?? ''),
+    phone: String(dto.phone ?? ''),
+    url: String(dto.url ?? ''),
     priceRange: dto.priceRange ? String(dto.priceRange) : '',
     lat: Number.isFinite(lat) ? lat : null,
     lng: Number.isFinite(lng) ? lng : null,
@@ -211,26 +214,31 @@ export async function fetchPlaces(options = {}) {
 }
 
 /**
- * 현재 위치 기반 식당 검색. 백엔드는 PlaceRequestDto(x=경도, y=위도, radius)를 받는다.
- * @param {{ lat: number, lng: number, radius?: number }} location
+ * 현재 위치 기반 식당 검색. 위치가 없으면 JSON null body로 보내 백엔드 기본 처리에 맡긴다.
+ * @param {{ lat: number, lng: number, radius?: number }|null} location
  * @returns {Promise<PlaceResponse[]>}
  */
-export async function searchPlacesByLocation(location) {
-  const radius = Number.isFinite(location.radius) ? location.radius : 1000
-  /** @type {PlaceSearchRequest} */
-  const body = {
-    x: location.lng,
-    y: location.lat,
-    radius,
-  }
+export async function searchPlacesByLocation(location = null) {
+  const hasLocation = location && Number.isFinite(location.lat) && Number.isFinite(location.lng)
+  const radius = hasLocation && Number.isFinite(location.radius) ? location.radius : 1000
+  /** @type {PlaceSearchRequest|null} */
+  const body = hasLocation
+    ? {
+        x: location.lng,
+        y: location.lat,
+        radius,
+      }
+    : null
   const fetchMock = async () => {
     const { mockSearchPlaces } = await import('./mockPlaces')
-    return mockSearchPlaces({ lat: location.lat, lng: location.lng })
+    return mockSearchPlaces(hasLocation ? { lat: location.lat, lng: location.lng } : null)
   }
   if (USE_MOCK) return fetchMock()
 
   try {
-    const { data } = await apiClient.post('/places/search', body)
+    const { data } = await apiClient.post('/places/search', body, {
+      headers: { 'Content-Type': 'application/json' },
+    })
     return unwrapPlaceList(data).map(normalizePlace)
   } catch (error) {
     if (shouldUseMockFallback(error)) return fetchMock()

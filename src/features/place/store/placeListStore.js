@@ -2,7 +2,7 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import * as placeApi from '../api/placeApi'
-import { BUSAN_CENTER, getCurrentPosition, haversineMeters } from '@/shared/utils/geo'
+import { getCurrentPosition, haversineMeters } from '@/shared/utils/geo'
 
 export const ALL_DISTRICT = '전체'
 const PAGE_SIZE = 10
@@ -39,7 +39,7 @@ export const usePlaceListStore = defineStore('placeList', () => {
   /** @type {import('vue').Ref<{ lat: number, lng: number } | null>} */
   const location = ref(null)
   const locating = ref(false)
-  const usingFallback = ref(false)
+  const locationUnavailable = ref(false)
 
   /** @type {import('vue').Ref<'nearby'|'district'>} */
   const mode = ref('district')
@@ -49,10 +49,10 @@ export const usePlaceListStore = defineStore('placeList', () => {
     locating.value = true
     try {
       location.value = await getCurrentPosition()
-      usingFallback.value = false
+      locationUnavailable.value = false
     } catch {
-      location.value = BUSAN_CENTER
-      usingFallback.value = true
+      location.value = null
+      locationUnavailable.value = true
     } finally {
       locating.value = false
     }
@@ -71,6 +71,15 @@ export const usePlaceListStore = defineStore('placeList', () => {
   function appendUnique(nextPlaces) {
     const seen = new Set(places.value.map((p) => p.id))
     places.value.push(...nextPlaces.filter((p) => !seen.has(p.id)))
+  }
+
+  /**
+   * 다른 화면에서 바뀐 식당 상태를 현재 목록 캐시에 반영한다.
+   * @param {Partial<import('../types/place.js').PlaceResponse> & { id: number }} patch
+   */
+  function patchPlace(patch) {
+    const target = places.value.find((p) => p.id === patch.id)
+    if (target) Object.assign(target, patch)
   }
 
   async function load() {
@@ -141,13 +150,17 @@ export const usePlaceListStore = defineStore('placeList', () => {
     let list = places.value.map((p) => ({
       ...p,
       distanceM:
-        loc && Number.isFinite(p.lat) && Number.isFinite(p.lng)
+        loc &&
+        Number.isFinite(loc.lat) &&
+        Number.isFinite(loc.lng) &&
+        Number.isFinite(p.lat) &&
+        Number.isFinite(p.lng)
           ? haversineMeters(loc.lat, loc.lng, p.lat, p.lng)
           : undefined,
     }))
 
     if (mode.value === 'nearby') {
-      if (loc) {
+      if (loc && Number.isFinite(loc.lat) && Number.isFinite(loc.lng)) {
         list = [...list].sort((a, b) => {
           const aDistance = Number.isFinite(a.distanceM) ? a.distanceM : Number.POSITIVE_INFINITY
           const bDistance = Number.isFinite(b.distanceM) ? b.distanceM : Number.POSITIVE_INFINITY
@@ -170,7 +183,7 @@ export const usePlaceListStore = defineStore('placeList', () => {
     hasMore,
     location,
     locating,
-    usingFallback,
+    locationUnavailable,
     mode,
     district,
     visiblePlaces,
@@ -178,6 +191,7 @@ export const usePlaceListStore = defineStore('placeList', () => {
     load,
     loadMore,
     init,
+    patchPlace,
     setMode,
     setDistrict,
   }

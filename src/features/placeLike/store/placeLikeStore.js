@@ -11,6 +11,7 @@ export const usePlaceLikeStore = defineStore('placeLike', () => {
   const loading = ref(false)
   const error = ref(null)
   const hasMore = ref(true)
+  const stale = ref(false)
 
   /** 내 좋아요 목록 첫 페이지 로드 (교체) */
   async function loadMyLikes() {
@@ -20,6 +21,7 @@ export const usePlaceLikeStore = defineStore('placeLike', () => {
       const list = await placeLikeApi.fetchMyLikedPlaces({ size: PAGE_SIZE })
       myLikes.value = list
       hasMore.value = list.length === PAGE_SIZE
+      stale.value = false
     } catch {
       error.value = '좋아요한 맛집을 불러오지 못했어요.'
     } finally {
@@ -54,5 +56,9 @@ export const usePlaceLikeStore = defineStore('placeLike', () => {
     myLikes.value = myLikes.value.filter((p) => p.placeId !== placeId)
   }
 
-  return { myLikes, loading, error, hasMore, loadMyLikes, loadMore, like, unlike }
+  function markStale() {
+    stale.value = true
+  }
+
+  return { myLikes, loading, error, hasMore, stale, loadMyLikes, loadMore, like, unlike, markStale }
 })

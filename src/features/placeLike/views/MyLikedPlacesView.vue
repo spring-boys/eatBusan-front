@@ -7,10 +7,10 @@ import { usePlaceLikeStore } from '../store/placeLikeStore'
 
 const router = useRouter()
 const store = usePlaceLikeStore()
-const { myLikes, loading, error } = storeToRefs(store)
+const { myLikes, loading, error, stale } = storeToRefs(store)
 
 onMounted(() => {
-  if (myLikes.value.length === 0) store.loadMyLikes()
+  if (stale.value || myLikes.value.length === 0) store.loadMyLikes()
 })
 </script>
 
@@ -50,9 +50,7 @@ onMounted(() => {
             <h3 class="row__name">{{ p.name }}</h3>
             <p class="row__addr">{{ p.address }}</p>
           </div>
-          <span class="row__like">
-            <v-icon icon="mdi-heart" size="15" />{{ p.likeCnt }}
-          </span>
+          <span class="row__like"> <v-icon icon="mdi-heart" size="15" />{{ p.likeCnt }} </span>
         </router-link>
       </li>
     </ul>

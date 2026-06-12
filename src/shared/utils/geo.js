@@ -1,8 +1,5 @@
 // 위치 기반 거리 계산 + 현재 위치 조회 유틸.
 
-/** 부산 도심(시청) 기준 좌표. 위치 권한 거부/실패 시 폴백. */
-export const BUSAN_CENTER = { lat: 35.1796, lng: 129.0756 }
-
 /**
  * 두 좌표 사이 거리(미터). Haversine.
  * @returns {number}
