@@ -1,5 +1,5 @@
 <script setup>
-// 내가 쓴 후기 — 목업(UI only). 샘플 데이터로 레이아웃만 보여준다.
+// 내가 다녀온 맛집 — 목업(UI only). 샘플 데이터로 레이아웃만 보여준다.
 // TODO(AI 연동): 로그인 사용자의 후기 목록을 postApi 로 로드(백엔드에 사용자별 목록 엔드포인트 추가 필요 —
 //   현재는 GET /api/posts 전체만 존재. API_CONTRACT 'Post' 참고). loading/error/빈 상태 처리.
 import { useRouter } from 'vue-router'
@@ -19,14 +19,14 @@ const posts = [
       <button class="sub-hd__back" type="button" aria-label="뒤로" @click="router.back()">
         <v-icon icon="mdi-chevron-left" size="24" />
       </button>
-      <h1 class="sub-hd__title">내가 쓴 후기</h1>
+      <h1 class="sub-hd__title">내가 다녀온 맛집</h1>
     </header>
 
     <div v-if="posts.length === 0" class="empty">
-      <v-icon icon="mdi-pencil-outline" size="40" class="empty__ic" />
-      <p class="empty__t">아직 남긴 후기가 없어요</p>
+      <v-icon icon="mdi-map-marker-check-outline" size="40" class="empty__ic" />
+      <p class="empty__t">아직 다녀온 맛집 기록이 없어요</p>
       <v-btn color="primary" variant="tonal" rounded="lg" size="small" @click="router.push('/write')">
-        첫 후기 쓰기
+        맛집 기록하기
       </v-btn>
     </div>
 

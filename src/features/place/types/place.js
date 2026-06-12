@@ -11,7 +11,8 @@
  */
 
 /**
- * 현재 위치 기반 장소 검색 요청 (백엔드 PlaceRequestDto 대응)
+ * 현재 위치 기반 장소 검색 요청 (백엔드 PlaceRequestDto 대응).
+ * 위치 정보가 없으면 프론트는 요청 body 자체를 null로 보낸다.
  * @typedef {Object} PlaceSearchRequest
  * @property {number} x          경도
  * @property {number} y          위도
@@ -29,7 +30,10 @@
  * @property {number} reviewCount
  * @property {number} [postCnt]
  * @property {number} likeCount
+ * @property {boolean} myLike
  * @property {string} address
+ * @property {string} phone
+ * @property {string} url
  * @property {string} [priceRange]    예: "1~2만원대"
  * @property {number|null} lat
  * @property {number|null} lng

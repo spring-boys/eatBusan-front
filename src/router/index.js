@@ -60,7 +60,7 @@ const router = createRouter({
     {
       path: '/my/posts',
       name: 'my-posts',
-      // 내가 쓴 후기 (목업)
+      // 내가 다녀온 맛집 (목업)
       component: () => import('@/features/post/views/MyPostsView.vue'),
     },
     {
