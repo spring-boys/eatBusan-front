@@ -91,10 +91,11 @@ function extractBusanDistrict(address) {
 
 /**
  * 백엔드 PlaceResponseListDto / PlaceResponseDto를 화면 모델로 정규화한다.
+ * (좋아요 목록 등 다른 화면에서도 홈과 동일한 카드 모델을 쓰도록 export)
  * @param {PlaceListResponseDto | Record<string, unknown>} dto
  * @returns {PlaceResponse}
  */
-function normalizePlace(dto) {
+export function normalizePlace(dto) {
   const areaCode = String(dto.area_cde ?? dto.area_code ?? dto.areaCode ?? dto.code ?? '')
   const district =
     DISTRICT_BY_AREA_CODE[areaCode] ?? extractBusanDistrict(String(dto.address ?? ''))

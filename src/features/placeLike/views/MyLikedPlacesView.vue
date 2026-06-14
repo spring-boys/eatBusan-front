@@ -1,16 +1,24 @@
 <script setup>
 // 좋아요한 맛집. 실제 API를 우선 호출하고, API 미연결 시 placeLike mock fallback을 사용한다.
-import { onMounted } from 'vue'
+// 카드는 홈(가게 리스트)과 동일한 PlaceListItem을 재사용해 통일성을 맞춘다.
+import { computed, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 import { usePlaceLikeStore } from '../store/placeLikeStore'
 import { useInfiniteScroll } from '@/shared/composables/useInfiniteScroll'
 import BrandMark from '@/shared/components/BrandMark.vue'
+import { normalizePlace } from '@/features/place/api/placeApi'
+import PlaceListItem from '@/features/place/components/PlaceListItem.vue'
 
 const router = useRouter()
 const store = usePlaceLikeStore()
 const { myLikes, loading, loadingMore, error } = storeToRefs(store)
 const { setSentinel } = useInfiniteScroll(() => store.loadMore())
+
+// PlaceLikeDetail → 홈 카드(PlaceResponse) 모델로 정규화 (placeId를 id로 매핑)
+const likedPlaces = computed(() =>
+  myLikes.value.map((p) => normalizePlace({ ...p, id: p.placeId })),
+)
 
 onMounted(() => {
   store.loadMyLikes()
@@ -49,17 +57,14 @@ onMounted(() => {
     </div>
 
     <template v-else>
-      <ul class="list">
-        <li v-for="p in myLikes" :key="p.placeLikeId">
-          <router-link :to="`/places/${p.placeId}`" class="row">
-            <div class="row__info">
-              <h3 class="row__name">{{ p.name }}</h3>
-              <p class="row__addr">{{ p.address }}</p>
-            </div>
-            <span class="row__like"> <v-icon icon="mdi-heart" size="15" />{{ p.likeCnt }} </span>
-          </router-link>
-        </li>
-      </ul>
+      <div class="list">
+        <PlaceListItem
+          v-for="p in likedPlaces"
+          :key="p.id"
+          :place="p"
+          :show-distance="false"
+        />
+      </div>
       <div :ref="setSentinel" class="mylikes__sentinel">
         <v-progress-circular v-if="loadingMore" indeterminate color="primary" size="24" width="3" />
       </div>
@@ -96,51 +101,9 @@ onMounted(() => {
 }
 
 .list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
   display: flex;
   flex-direction: column;
   gap: 10px;
-}
-.row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: rgb(var(--v-theme-surface));
-  border-radius: 16px;
-  padding: 14px 16px;
-  box-shadow: var(--depth-1);
-  text-decoration: none;
-  color: inherit;
-}
-.row__info {
-  flex: 1;
-  min-width: 0;
-}
-.row__name {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  color: rgb(var(--v-theme-on-surface));
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.row__addr {
-  margin: 3px 0 0;
-  font-size: 13px;
-  color: rgba(33, 26, 23, 0.5);
-}
-.row__like {
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  font-size: 13px;
-  font-weight: 800;
-  color: var(--rose);
 }
 .empty {
   flex: 1;

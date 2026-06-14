@@ -1,15 +1,17 @@
 <script setup>
-// 내가 다녀온 맛집 — 목업(UI only). 샘플 데이터로 레이아웃만 보여준다.
+// 내가 쓴 후기 — 목업(UI only). 샘플 데이터로 레이아웃만 보여준다.
+// 카드는 홈(가게 리스트)과 동일한 가로형 레이아웃(썸네일 + 강한 타이포 + 메타)을 따라 통일감을 맞춘다.
 // TODO(AI 연동): 로그인 사용자의 후기 목록을 postApi 로 로드(백엔드에 사용자별 목록 엔드포인트 추가 필요 —
 //   현재는 GET /api/posts 전체만 존재. API_CONTRACT 'Post' 참고). loading/error/빈 상태 처리.
 import { useRouter } from 'vue-router'
+import defaultPlaceThumb from '@/assets/place-thumb-default.svg'
 
 const router = useRouter()
 
 // 목업 샘플
 const posts = [
-  { id: 1, title: '전포 카페거리 티라미수 인생샷', place: '카페 노을', likeCount: 12, commentCount: 3, createdAt: '2026-06-01' },
-  { id: 2, title: '서면 불막창 곱창 또 갔다', place: '서면 불막창', likeCount: 8, commentCount: 1, createdAt: '2026-05-28' },
+  { id: 1, title: '전포 카페거리 티라미수 인생샷', place: '카페 노을', thumbnailUrl: null, likeCount: 12, commentCount: 3, createdAt: '2026-06-01' },
+  { id: 2, title: '서면 불막창 곱창 또 갔다', place: '서면 불막창', thumbnailUrl: null, likeCount: 8, commentCount: 1, createdAt: '2026-05-28' },
 ]
 </script>
 
@@ -30,9 +32,12 @@ const posts = [
       </v-btn>
     </div>
 
-    <ul v-else class="list">
-      <li v-for="p in posts" :key="p.id">
-        <router-link :to="`/places/${p.id}`" class="card">
+    <div v-else class="list">
+      <router-link v-for="p in posts" :key="p.id" :to="`/posts/${p.id}`" class="card">
+        <div class="card__thumb">
+          <v-img :src="p.thumbnailUrl || defaultPlaceThumb" :alt="p.title" :aspect-ratio="1" cover />
+        </div>
+        <div class="card__info">
           <h3 class="card__title">{{ p.title }}</h3>
           <div class="card__meta">
             <span class="card__place">{{ p.place }}</span>
@@ -43,9 +48,10 @@ const posts = [
             <span><v-icon icon="mdi-heart" size="14" />{{ p.likeCount }}</span>
             <span><v-icon icon="mdi-comment-outline" size="14" />{{ p.commentCount }}</span>
           </div>
-        </router-link>
-      </li>
-    </ul>
+        </div>
+        <v-icon icon="mdi-chevron-right" size="22" class="card__chevron" aria-hidden="true" />
+      </router-link>
+    </div>
   </div>
 </template>
 
@@ -73,35 +79,55 @@ const posts = [
 }
 
 .list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
+
+/* 홈(PlaceListItem)과 동일한 가로형 카드 레이아웃 */
 .card {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
   background: rgb(var(--v-theme-surface));
-  border-radius: 16px;
-  padding: 16px;
+  border-radius: 18px;
   box-shadow: var(--depth-1);
   text-decoration: none;
   color: inherit;
 }
+.card__thumb {
+  flex: 0 0 76px;
+  width: 76px;
+  height: 76px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(31, 26, 23, 0.04);
+}
+.card__info {
+  flex: 1 1 auto;
+  min-width: 0;
+}
 .card__title {
-  margin: 0 0 6px;
-  font-size: 16px;
+  margin: 0;
+  font-size: 18px;
   font-weight: 800;
   letter-spacing: -0.03em;
   color: rgb(var(--v-theme-on-surface));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .card__meta {
   display: flex;
   align-items: center;
   gap: 5px;
+  margin-top: 4px;
   font-size: 13px;
   color: rgba(33, 26, 23, 0.5);
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
 }
 .card__place {
   font-weight: 700;
@@ -110,7 +136,7 @@ const posts = [
 .card__stats {
   display: flex;
   gap: 14px;
-  margin-top: 10px;
+  margin-top: 6px;
   font-size: 13px;
   font-weight: 700;
   color: rgba(33, 26, 23, 0.55);
@@ -122,6 +148,10 @@ const posts = [
 }
 .card__stats .v-icon {
   color: var(--rose);
+}
+.card__chevron {
+  flex: none;
+  color: rgba(31, 26, 23, 0.22);
 }
 
 .empty {
