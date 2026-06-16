@@ -1,18 +1,44 @@
 <script setup>
-// 내가 쓴 후기 — 목업(UI only). 샘플 데이터로 레이아웃만 보여준다.
-// 카드는 홈(가게 리스트)과 동일한 가로형 레이아웃(썸네일 + 강한 타이포 + 메타)을 따라 통일감을 맞춘다.
-// TODO(AI 연동): 로그인 사용자의 후기 목록을 postApi 로 로드(백엔드에 사용자별 목록 엔드포인트 추가 필요 —
-//   현재는 GET /api/posts 전체만 존재. API_CONTRACT 'Post' 참고). loading/error/빈 상태 처리.
+// 내가 쓴 후기 — 로그인 사용자가 작성한 후기 목록.
+// 백엔드에 사용자별 목록 API가 없어 전체(GET /api/posts)를 받아 내 email로 필터한다.
+// 카드 썸네일은 후기의 대표 이미지(thumbnailUrl = images[0])를 쓴다 (가게 이미지 아님).
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { fetchPosts } from '../api/postApi'
+import { useAuthStore } from '@/features/auth/store/authStore'
+import { USE_MOCK } from '@/shared/api/mockFallback'
 import defaultPlaceThumb from '@/assets/place-thumb-default.svg'
 
 const router = useRouter()
+const auth = useAuthStore()
 
-// 목업 샘플
-const posts = [
-  { id: 1, title: '전포 카페거리 티라미수 인생샷', place: '카페 노을', thumbnailUrl: null, likeCount: 12, commentCount: 3, createdAt: '2026-06-01' },
-  { id: 2, title: '서면 불막창 곱창 또 갔다', place: '서면 불막창', thumbnailUrl: null, likeCount: 8, commentCount: 1, createdAt: '2026-05-28' },
-]
+const posts = ref([])
+const loading = ref(true)
+const error = ref(null)
+
+/** ISO/날짜 문자열에서 YYYY-MM-DD만 (목업·실데이터 공통) */
+function formatDate(value) {
+  return typeof value === 'string' ? value.slice(0, 10) : ''
+}
+
+async function load() {
+  loading.value = true
+  error.value = null
+  try {
+    // 미로그인이면 세션 복구를 한 번 시도 (email 로 내 후기를 거른다)
+    if (!USE_MOCK && !auth.memberEmail) await auth.restoreSession()
+    // 전체 후기 중 내가 쓴 것만. (사용자별 목록 엔드포인트 추가되면 그 API로 교체)
+    const all = await fetchPosts(1, 100)
+    const myEmail = auth.memberEmail
+    posts.value = USE_MOCK || !myEmail ? all : all.filter((p) => p.authorEmail === myEmail)
+  } catch {
+    error.value = '후기를 불러오지 못했어요. 잠시 후 다시 시도해주세요.'
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(load)
 </script>
 
 <template>
@@ -24,9 +50,21 @@ const posts = [
       <h1 class="sub-hd__title">내가 다녀온 맛집</h1>
     </header>
 
-    <div v-if="posts.length === 0" class="empty">
-      <v-icon icon="mdi-map-marker-check-outline" size="40" class="empty__ic" />
-      <p class="empty__t">아직 다녀온 맛집 기록이 없어요</p>
+    <div v-if="loading" class="state">
+      <v-progress-circular indeterminate color="primary" size="28" width="3" />
+    </div>
+
+    <div v-else-if="error" class="state">
+      <v-icon icon="mdi-wifi-off" size="40" class="state__ic" />
+      <p class="state__t">{{ error }}</p>
+      <v-btn color="primary" variant="tonal" rounded="lg" size="small" @click="load">
+        다시 시도
+      </v-btn>
+    </div>
+
+    <div v-else-if="posts.length === 0" class="state">
+      <v-icon icon="mdi-map-marker-check-outline" size="40" class="state__ic" />
+      <p class="state__t">아직 다녀온 맛집 기록이 없어요</p>
       <v-btn color="primary" variant="tonal" rounded="lg" size="small" @click="router.push('/write')">
         맛집 기록하기
       </v-btn>
@@ -40,9 +78,7 @@ const posts = [
         <div class="card__info">
           <h3 class="card__title">{{ p.title }}</h3>
           <div class="card__meta">
-            <span class="card__place">{{ p.place }}</span>
-            <span class="card__dot">·</span>
-            <span>{{ p.createdAt }}</span>
+            <span>{{ formatDate(p.createdAt) }}</span>
           </div>
           <div class="card__stats">
             <span><v-icon icon="mdi-heart" size="14" />{{ p.likeCount }}</span>
@@ -129,10 +165,6 @@ const posts = [
   overflow: hidden;
   white-space: nowrap;
 }
-.card__place {
-  font-weight: 700;
-  color: var(--brand-deep);
-}
 .card__stats {
   display: flex;
   gap: 14px;
@@ -154,15 +186,18 @@ const posts = [
   color: rgba(31, 26, 23, 0.22);
 }
 
-.empty {
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
   padding: 56px 16px;
 }
-.empty__ic {
+.state__ic {
   color: rgba(33, 26, 23, 0.22);
   margin-bottom: 12px;
 }
-.empty__t {
+.state__t {
   margin: 0 0 18px;
   font-size: 15px;
   font-weight: 700;
