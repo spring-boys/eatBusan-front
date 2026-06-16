@@ -35,6 +35,27 @@ function onCommentAdded() {
   if (post.value) post.value.commentCount += 1
 }
 
+// 들어온 출처로 복귀. query.from(feed/place)을 우선 사용한다.
+// 수정→저장(router.replace) 후엔 router.back()이 같은 후기로 되돌아가 빈 화면이 되므로,
+// 출처를 명시적으로 따라간다. 출처가 없으면 history.back, 그것도 없으면 홈.
+function goOrigin() {
+  const from = route.query.from
+  if (from === 'place' && route.query.placeId) {
+    router.replace({ name: 'place-detail', params: { id: route.query.placeId } })
+  } else if (from === 'feed') {
+    router.replace({ name: 'feed' })
+  } else if (window.history.state?.back) {
+    router.back()
+  } else {
+    router.replace({ name: 'home' })
+  }
+}
+
+// 수정 화면으로 진입할 때 출처(query)를 그대로 전달해, 저장 후 복귀 맥락을 유지한다.
+function goEdit() {
+  router.push({ name: 'post-edit', params: { id: post.value.id }, query: route.query })
+}
+
 async function confirmDelete() {
   deleting.value = true
   deleteError.value = null
@@ -42,7 +63,7 @@ async function confirmDelete() {
   deleting.value = false
   if (ok) {
     deleteDialog.value = false
-    router.replace('/feed')
+    goOrigin()
   } else {
     deleteError.value = store.error
   }
@@ -53,7 +74,7 @@ async function confirmDelete() {
   <div class="detail">
     <!-- 상단 헤더 -->
     <header class="sub-hd">
-      <button class="sub-hd__back" type="button" aria-label="뒤로" @click="router.back()">
+      <button class="sub-hd__back" type="button" aria-label="뒤로" @click="goOrigin">
         <v-icon icon="mdi-chevron-left" size="24" />
       </button>
       <h1 class="sub-hd__title">후기</h1>
@@ -73,7 +94,7 @@ async function confirmDelete() {
           <v-list-item
             prepend-icon="mdi-pencil-outline"
             title="수정"
-            @click="router.push({ name: 'post-edit', params: { id: post.id } })"
+            @click="goEdit"
           />
           <v-list-item
             prepend-icon="mdi-delete-outline"

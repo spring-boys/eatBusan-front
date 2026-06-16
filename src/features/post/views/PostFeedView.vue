@@ -23,7 +23,7 @@ function openComments(id) {
   commentOpen.value = true
 }
 function goDetail(id) {
-  router.push({ name: 'post-detail', params: { id } })
+  router.push({ name: 'post-detail', params: { id }, query: { from: 'feed' } })
 }
 function onCommentAdded(id) {
   const target = posts.value.find((p) => p.id === id)

@@ -68,7 +68,11 @@ function back() {
 
 // 후기 카드 클릭 → 후기 상세 (PostCard 의 open 이벤트 — 피드와 동일 동선)
 function goReviewDetail(reviewId) {
-  router.push({ name: 'post-detail', params: { id: reviewId } })
+  router.push({
+    name: 'post-detail',
+    params: { id: reviewId },
+    query: { from: 'place', placeId: place.value?.id },
+  })
 }
 
 // 후기 쓰기 — 현재 가게가 선택된 상태로 작성 화면 진입
