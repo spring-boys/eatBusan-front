@@ -70,6 +70,12 @@ const router = createRouter({
       component: () => import('@/features/placeLike/views/MyLikedPlacesView.vue'),
     },
     {
+      path: '/my/liked-reviews',
+      name: 'my-liked-reviews',
+      // 좋아요한 리뷰 (전체 목록 한 번에 조회)
+      component: () => import('@/features/post/views/MyLikedReviewsView.vue'),
+    },
+    {
       path: '/write',
       name: 'write',
       // 후기 쓰기 (목업, 전체화면)

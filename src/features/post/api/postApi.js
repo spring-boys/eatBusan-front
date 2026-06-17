@@ -186,6 +186,52 @@ export async function updatePost(postId, body) {
   }
 }
 
+/** @typedef {{ postId: number, title: string, liked: boolean }} MyLikedReview */
+
+/**
+ * 응답에서 좋아요 목록 배열을 꺼낸다 (배열 / {items:[]} 모두 방어).
+ * @param {unknown} data
+ * @returns {Array<Record<string, unknown>>}
+ */
+function unwrapLikedList(data) {
+  if (Array.isArray(data)) return data
+  if (Array.isArray(data?.items)) return data.items
+  return []
+}
+
+/**
+ * 백엔드 좋아요 항목을 화면 모델로 정규화한다.
+ * @param {Record<string, unknown>} dto
+ * @returns {MyLikedReview}
+ */
+function normalizeLikedReview(dto) {
+  return {
+    postId: Number(dto?.postId ?? dto?.id ?? 0),
+    title: String(dto?.title ?? ''),
+    liked: Boolean(dto?.liked ?? true),
+  }
+}
+
+/**
+ * 내가 좋아요한 후기 목록 (인증 필요). 페이지네이션 없이 전체를 한 번에 반환한다.
+ * @returns {Promise<MyLikedReview[]>}
+ */
+export async function fetchMyLikedPosts() {
+  const fetchMock = async () => {
+    const { mockFetchMyLikedPosts } = await import('./mockPosts')
+    return mockFetchMyLikedPosts()
+  }
+  if (USE_MOCK) return fetchMock()
+
+  try {
+    const { data } = await apiClient.get('/posts/likes/my')
+    return unwrapLikedList(data).map(normalizeLikedReview)
+  } catch (error) {
+    if (shouldUseMockFallback(error)) return fetchMock()
+    throw error
+  }
+}
+
 /**
  * 후기 삭제 (인증 필요)
  * @param {number} postId
