@@ -15,4 +15,14 @@
  * @property {string} content
  */
 
+/**
+ * 내가 작성한 댓글 (백엔드 MyCommentDto 대응). 댓글이 달린 후기로 이동하기 위해 post 맥락을 포함한다.
+ * @typedef {Object} MyCommentResponse
+ * @property {number} id
+ * @property {number} postId       댓글이 달린 후기 id (상세 이동용)
+ * @property {string} postTitle    후기 제목
+ * @property {string} content
+ * @property {string} createdAt    ISO 8601
+ */
+
 export {}
