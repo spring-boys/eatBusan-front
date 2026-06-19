@@ -205,3 +205,15 @@ export async function deletePost(postId) {
     throw error
   }
 }
+
+/**
+ * 내가 작성한 후기 목록 (인증 필요). 페이지네이션 없이 전체를 최신순으로 반환한다.
+ * 백엔드 GET /api/posts/my → PostResponseDto[] (피드와 동일 형태)라 normalizePost 재사용.
+ * @returns {Promise<PostResponse[]>}
+ */
+export async function fetchMyPosts() {
+  const { data } = await apiClient.get('/posts/my')
+  return unwrapPostList(data)
+    .map(normalizePost)
+    .sort((a, b) => b.id - a.id)
+}
