@@ -86,6 +86,17 @@ onMounted(() => {
         <button
           class="tab"
           type="button"
+          :class="{ 'tab--on': isActive('/vote') }"
+          :aria-current="isActive('/vote') ? 'page' : undefined"
+          @click="go('/vote')"
+        >
+          <v-icon :icon="isActive('/vote') ? 'mdi-vote' : 'mdi-vote-outline'" size="24" />
+          <span class="tab__label">투표</span>
+        </button>
+
+        <button
+          class="tab"
+          type="button"
           :class="{ 'tab--on': isActive('/my') }"
           :aria-current="isActive('/my') ? 'page' : undefined"
           @click="go('/my')"

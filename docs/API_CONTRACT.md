@@ -182,6 +182,112 @@
 
 ---
 
+## Vote Room (실시간 맛집 투표)  🟢 구현됨
+`/api/vote-rooms` (VoteRoomController) + STOMP. 실제 백엔드 코드에서 확정한 계약이다(추측 금지, 필드명 그대로).
+
+### REST (baseURL `/api`, Bearer 자동주입은 client 인터셉터가 처리)
+
+| 동작 | Method | Path | 인증 |
+|------|--------|------|------|
+| 방 생성 | POST | `/api/vote-rooms` | ✅ |
+| 코드로 입장 | POST | `/api/vote-rooms/join` | ✅ |
+| 방 상세 | GET | `/api/vote-rooms/{publicId}` | ✅ |
+| 결과(집계) | GET | `/api/vote-rooms/{publicId}/result` | ✅ |
+| 투표 제출 | POST | `/api/vote-rooms/{publicId}/votes` | ✅ |
+| 마감(호스트) | POST | `/api/vote-rooms/{publicId}/close` | ✅ |
+
+- `status` 값: `"OPEN"` | `"CLOSED"`.
+- `myBallot` 은 아직 투표 안 했으면 **빈 배열**. `tally` 의 `score` 는 점수합(숫자).
+- 점수는 백엔드가 계산(1등=5, 2등=3, 3등=1). 프론트는 `candidateIds` 순서만 보낸다.
+
+**방 생성 — POST `/api/vote-rooms`** body `{title, lat, lng, radius}` → **201**
+근처 맛집 후보 5개가 자동 시드됨.
+```jsonc
+{
+  "roomPublicId": "VR_xxxx",
+  "inviteCode": "ABCD1234",
+  "candidates": [ { "candidateId": 1, "placeId": 7, "placeName": "○○국밥" } ],
+  "participants": [ { "memberId": 1, "status": "..." } ]
+}
+```
+
+**코드로 입장 — POST `/api/vote-rooms/join`** body `{code}` → **200** (상세 GET 과 동일 형태)
+
+**방 상세 — GET `/api/vote-rooms/{publicId}`** → **200**
+```jsonc
+{
+  "roomPublicId": "VR_xxxx",
+  "title": "점심 어디서 먹지?",
+  "hostMemberId": 1,
+  "status": "OPEN",
+  "winnerCandidateId": null,
+  "inviteCode": "ABCD1234",
+  "myBallot": [ /* candidateId, 1등→2등→3등 순서 */ ],
+  "candidates": [ { "candidateId": 1, "placeId": 7, "placeName": "○○국밥" } ],
+  "participants": [ { "memberId": 1, "status": "..." } ]
+}
+```
+
+**결과 — GET `/api/vote-rooms/{publicId}/result`** → **200**
+```jsonc
+{
+  "status": "OPEN",
+  "winnerCandidateId": null,
+  "version": 3,
+  "tally": [ { "candidateId": 1, "score": 8 } ]
+}
+```
+
+**투표 제출 — POST `/api/vote-rooms/{publicId}/votes`** body `{candidateIds:[1등,2등,3등 candidateId]}` → **200**
+```jsonc
+{
+  "myBallot": [ /* candidateId 순서대로 */ ],
+  "tally": [ { "candidateId": 1, "score": 8 } ]
+}
+```
+
+**마감 — POST `/api/vote-rooms/{publicId}/close`** (호스트만) → **200**
+```jsonc
+{
+  "status": "CLOSED",
+  "winnerCandidateId": 1,
+  "version": 4,
+  "tally": [ { "candidateId": 1, "score": 8 } ]
+}
+```
+
+### 에러
+| 상태 | 코드/사유 |
+|------|-----------|
+| 404 | 없는 방 / `INVALID_INVITE_CODE` (코드 입장 실패) / 마감 후 일정 시간 뒤 방 삭제됨 → 조회 404 = "종료된 투표" |
+| 409 | `VOTE_ROOM_CLOSED` (마감된 방에 투표) |
+| 403 | 비참가자(투표/조회) / 비호스트(마감) |
+| 400 | `BALLOT_EMPTY` / `BALLOT_TOO_MANY` / `BALLOT_DUPLICATE_CANDIDATE` / `CANDIDATE_NOT_IN_ROOM` |
+
+에러 본문 처리는 기존 feature 들의 패턴(`EBException` + `ErrorCode`)을 따른다.
+
+### STOMP 실시간 (백엔드 raw STOMP, SockJS 아님)
+- 의존성: `@stomp/stompjs`. (Vite proxy `/ws-stomp` → `ws://localhost:8081`, `ws:true`.)
+- 프론트는 동일출처 `brokerURL = ws://${location.host}/ws-stomp` 로 연결(백엔드 호스트 하드코딩 금지).
+- CONNECT 시 `connectHeaders: { Authorization: "Bearer <accessToken>" }`. accessToken 은 `@/shared/api/client` 의 토큰 접근자(`getAccessToken`) 사용.
+- 구독 destination: `/topic/vote-rooms/{roomPublicId}`.
+- **클라이언트 SEND 금지(서버가 거부). 쓰기는 전부 REST.**
+
+수신 메시지:
+```jsonc
+// 누군가 투표 → 집계 갱신
+{ "type": "TALLY_UPDATED", "version": 5, "tally": [ { "candidateId": 1, "score": 8 } ] }
+// 호스트 마감 → 승자 발표
+{ "type": "ROOM_CLOSED", "winnerCandidateId": 1, "version": 6, "tally": [ /* ... */ ] }
+```
+
+- **버전 가드**: store 가 보관한 `lastVersion` 보다 낮거나 같은 메시지는 무시(역행 폐기). 단 `version` 0/미상은 항상 적용.
+- 재연결 직후 `GET /result` 로 스냅샷을 받고 그 `version` 을 기준으로 삼는다.
+
+> 프론트 스캐폴드: `src/features/vote/{types,api,store,components,views}`. 소켓: `features/vote/api/voteSocket.js`.
+
+---
+
 ## 갱신 규칙
 - 백엔드 DTO가 바뀌면 **이 문서를 같이 PR**에 포함.
 - 프론트 타입(`features/*/types`)·API 함수(`features/*/api`)는 이 문서를 기준으로 맞춘다.

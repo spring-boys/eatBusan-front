@@ -94,6 +94,31 @@ const router = createRouter({
       // 댓글 기능 템플릿 데모 (레퍼런스 화면)
       component: () => import('@/features/comment/views/CommentListView.vue'),
     },
+    {
+      path: '/vote',
+      name: 'vote-home',
+      // 투표 랜딩 (하단탭 진입점 — 방 만들기 + 코드 입장)
+      component: () => import('@/features/vote/views/VoteHomeView.vue'),
+    },
+    {
+      path: '/vote/new',
+      name: 'vote-new',
+      // 투표방 만들기 (현재 위치 기반 → 초대 코드 발급)
+      component: () => import('@/features/vote/views/VoteRoomCreateView.vue'),
+    },
+    {
+      path: '/vote/join',
+      name: 'vote-join',
+      // 코드로 투표방 입장
+      component: () => import('@/features/vote/views/VoteRoomJoinView.vue'),
+    },
+    {
+      path: '/vote/:roomPublicId',
+      name: 'vote-room',
+      // 투표방 메인 (실시간 투표 + 결과). 뷰가 route.params.roomPublicId 를 읽는다
+      props: true,
+      component: () => import('@/features/vote/views/VoteRoomView.vue'),
+    },
     // 새 기능 페이지는 features/<f>/views 의 컴포넌트를 여기에 등록한다.
   ],
 })

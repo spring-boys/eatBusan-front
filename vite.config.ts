@@ -23,6 +23,12 @@ export default defineConfig({
         target: 'http://localhost:8081',
         changeOrigin: true,
       },
+      // 투표방 STOMP WebSocket → Spring(8081) 프록시
+      '/ws-stomp': {
+        target: 'ws://localhost:8081',
+        ws: true,
+        changeOrigin: true,
+      },
     },
   },
 })
