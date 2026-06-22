@@ -31,16 +31,24 @@ const {
 
 const publicId = computed(() => String(route.params.roomPublicId))
 
-// 참여 현황 진행률 (투표 완료 / 참가자)
-const votedPct = computed(() =>
-  participantCount.value ? Math.round((votedCount.value / participantCount.value) * 100) : 0,
-)
-
 // BallotPicker 의 로컬 선택 — myBallot 으로 초기화/복원한다
 const picked = ref([])
 const submitting = ref(false)
 const closing = ref(false)
 const submitted = ref(false)
+// 재투표(편집) 모드: '다시 투표하기' 를 누르면 선택을 비우고 내 완료 상태를 즉시 해제한다.
+const editing = ref(false)
+
+// 내가 '투표 완료' 로 보이는지 (편집 중이면 미완료로 취급)
+const myVoteDone = computed(() => hasVoted.value && !editing.value)
+// 편집 중이면 내 한 표를 빼고 표시 (재투표 시작 즉시 완료 인원 -1)
+const displayVotedCount = computed(() =>
+  editing.value ? Math.max(0, votedCount.value - 1) : votedCount.value,
+)
+// 참여 현황 진행률 (표시용 완료 인원 / 참가자)
+const votedPct = computed(() =>
+  participantCount.value ? Math.round((displayVotedCount.value / participantCount.value) * 100) : 0,
+)
 
 const isOpen = computed(() => room.value?.status === 'OPEN')
 const isClosed = computed(() => room.value?.status === 'CLOSED')
@@ -73,11 +81,25 @@ async function submit() {
   try {
     await store.submitBallot([...picked.value])
     submitted.value = true
+    editing.value = false
   } catch {
     // store.error 에 메시지가 채워진다 — 화면에서 노출
   } finally {
     submitting.value = false
   }
+}
+
+// 메인 버튼: 완료 상태면 재투표 시작(선택 해제 + 완료 즉시 해제), 아니면 제출
+function startReedit() {
+  editing.value = true
+  picked.value = []
+}
+function onPrimary() {
+  if (myVoteDone.value) {
+    startReedit()
+    return
+  }
+  submit()
 }
 
 async function close() {
@@ -126,20 +148,20 @@ onBeforeUnmount(() => store.disconnect())
         <div class="vr__part-top">
           <span class="vr__part-label">투표 현황</span>
           <span class="vr__part-ratio">
-            <strong>{{ votedCount }}</strong><span class="vr__part-total">/ {{ participantCount }}명</span>
+            <strong>{{ displayVotedCount }}</strong><span class="vr__part-total">/ {{ participantCount }}명</span>
           </span>
         </div>
         <div
           class="vr__part-bar"
           role="progressbar"
-          :aria-valuenow="votedCount"
+          :aria-valuenow="displayVotedCount"
           :aria-valuemax="participantCount"
-          :aria-label="`참가 ${participantCount}명 중 ${votedCount}명 투표 완료`"
+          :aria-label="`참가 ${participantCount}명 중 ${displayVotedCount}명 투표 완료`"
         >
           <span class="vr__part-fill" :style="{ width: votedPct + '%' }"></span>
         </div>
         <p class="vr__part-caption">
-          참가 {{ participantCount }}명 중 {{ votedCount }}명 완료 · {{ votedPct }}%
+          참가 {{ participantCount }}명 중 {{ displayVotedCount }}명 완료 · {{ votedPct }}%
         </p>
       </section>
 
@@ -170,7 +192,7 @@ onBeforeUnmount(() => store.disconnect())
       <template v-else>
         <section class="vr__sec">
           <h2 class="vr__sec-title">
-            {{ hasVoted ? '내가 고른 순위' : '1·2·3순위를 골라요' }}
+            {{ myVoteDone ? '내가 고른 순위' : '1·2·3순위를 골라요' }}
           </h2>
           <p class="vr__sec-sub">탭하면 순위가 매겨지고, 다시 탭하면 해제돼요. (최대 3개)</p>
           <BallotPicker v-model="picked" :candidates="candidates" />
@@ -193,10 +215,10 @@ onBeforeUnmount(() => store.disconnect())
           block
           class="vr__submit"
           :loading="submitting"
-          :disabled="!picked.length"
-          @click="submit"
+          :disabled="myVoteDone ? false : !picked.length"
+          @click="onPrimary"
         >
-          {{ hasVoted ? '다시 투표하기' : '투표 제출' }}
+          {{ myVoteDone ? '다시 투표하기' : '투표 제출' }}
         </v-btn>
 
         <section class="vr__sec vr__sec--tally">
