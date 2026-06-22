@@ -119,23 +119,29 @@ onBeforeUnmount(() => store.disconnect())
           {{ isClosed ? '마감' : '진행 중' }}
         </span>
         <h1 class="vr__title">{{ room.title }}</h1>
-
-        <!-- 참여 현황: 제목 바로 아래, 한눈에 -->
-        <div class="vr__part">
-          <p class="vr__part-text">
-            참가 {{ participantCount }}명 중 <strong>{{ votedCount }}명</strong> 투표 완료
-          </p>
-          <div
-            class="vr__part-bar"
-            role="progressbar"
-            :aria-valuenow="votedCount"
-            :aria-valuemax="participantCount"
-            :aria-label="`참가 ${participantCount}명 중 ${votedCount}명 투표 완료`"
-          >
-            <span class="vr__part-fill" :style="{ width: votedPct + '%' }"></span>
-          </div>
-        </div>
       </header>
+
+      <!-- 참여 현황: 독립 카드 섹션 -->
+      <section class="vr__part" aria-label="투표 참여 현황">
+        <div class="vr__part-top">
+          <span class="vr__part-label">투표 현황</span>
+          <span class="vr__part-ratio">
+            <strong>{{ votedCount }}</strong><span class="vr__part-total">/ {{ participantCount }}명</span>
+          </span>
+        </div>
+        <div
+          class="vr__part-bar"
+          role="progressbar"
+          :aria-valuenow="votedCount"
+          :aria-valuemax="participantCount"
+          :aria-label="`참가 ${participantCount}명 중 ${votedCount}명 투표 완료`"
+        >
+          <span class="vr__part-fill" :style="{ width: votedPct + '%' }"></span>
+        </div>
+        <p class="vr__part-caption">
+          참가 {{ participantCount }}명 중 {{ votedCount }}명 완료 · {{ votedPct }}%
+        </p>
+      </section>
 
       <!-- CLOSED: 승자 발표 -->
       <template v-if="isClosed">
@@ -304,24 +310,45 @@ onBeforeUnmount(() => store.disconnect())
   background: var(--brand);
   animation: vr-pulse 1.6s ease-in-out infinite;
 }
-/* 참여 현황 — 제목 바로 아래 */
+/* 참여 현황 — 독립 카드 섹션 */
 .vr__part {
-  margin-top: 18px;
+  margin: 0 0 22px;
+  padding: 16px 18px;
+  background: #fff;
+  border: 1px solid var(--brand-tint);
+  border-radius: 16px;
+  box-shadow: 0 2px 10px rgba(33, 26, 23, 0.05);
 }
-.vr__part-text {
-  margin: 0 0 12px;
-  font-size: 18px;
+.vr__part-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.vr__part-label {
+  font-size: 14px;
   font-weight: 700;
-  letter-spacing: -0.02em;
-  color: rgba(33, 26, 23, 0.78);
+  letter-spacing: -0.01em;
+  color: rgba(33, 26, 23, 0.6);
 }
-.vr__part-text strong {
-  font-size: 1.45em;
+.vr__part-ratio {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+}
+.vr__part-ratio strong {
+  font-size: 26px;
   font-weight: 800;
+  line-height: 1;
   color: var(--brand-deep);
 }
+.vr__part-total {
+  font-size: 15px;
+  font-weight: 700;
+  color: rgba(33, 26, 23, 0.4);
+}
 .vr__part-bar {
-  height: 14px;
+  height: 12px;
   border-radius: 9999px;
   background: var(--brand-tint);
   overflow: hidden;
@@ -332,6 +359,12 @@ onBeforeUnmount(() => store.disconnect())
   border-radius: 9999px;
   background: var(--brand);
   transition: width 280ms ease;
+}
+.vr__part-caption {
+  margin: 10px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(33, 26, 23, 0.5);
 }
 @media (prefers-reduced-motion: reduce) {
   .vr__part-fill {
