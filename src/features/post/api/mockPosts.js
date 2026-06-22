@@ -275,6 +275,21 @@ export async function mockDeletePost(postId) {
   if (idx >= 0) store.splice(idx, 1)
 }
 
+/** @typedef {{ postId: number, title: string, liked: boolean }} MyLikedReview */
+
+/**
+ * 시드 "내가 좋아요한 후기" 목록. 페이지네이션 없이 전체 반환.
+ * @returns {Promise<MyLikedReview[]>}
+ */
+export async function mockFetchMyLikedPosts() {
+  await delay(300)
+  return [
+    { postId: 2, title: '광안리 노을 보면서 먹은 밀면', liked: true },
+    { postId: 7, title: '기장 멸치쌈밥 정식', liked: true },
+    { postId: 13, title: '센텀 카페, 빵이 진짜 맛있는 베이커리', liked: true },
+  ]
+}
+
 /**
  * 시드 좋아요 토글.
  * @param {number} postId

@@ -5,6 +5,7 @@ import { USE_MOCK, shouldUseMockFallback } from '@/shared/api/mockFallback'
 
 /** @typedef {import('@/shared/types/api.js').PageParams} PageParams */
 /** @typedef {import('../types/comment.js').CommentRequest} CommentRequest */
+/** @typedef {import('../types/comment.js').MyCommentResponse} MyCommentResponse */
 
 const base = (postId) => `/posts/${postId}/comments`
 
@@ -19,7 +20,12 @@ function normalizeComment(dto) {
     id,
     content: String(dto.content ?? ''),
     createdAt: String(dto.createdAt ?? new Date().toISOString()),
-    authorNickname: dto.authorNickname ? String(dto.authorNickname) : undefined,
+    // 백엔드는 작성자 email 을 준다(닉네임 컬럼 없음). @ 앞부분만 작성자명으로 노출한다.
+    authorNickname: dto.authorNickname
+      ? String(dto.authorNickname)
+      : dto.email
+        ? String(dto.email).split('@')[0]
+        : undefined,
   }
 }
 
@@ -31,6 +37,25 @@ function unwrapComments(data) {
   const list = Array.isArray(data) ? data : data?.items
   if (!Array.isArray(list)) throw new Error('invalid comment response')
   return list.map(normalizeComment)
+}
+
+/**
+ * @param {Record<string, unknown>} dto
+ * @returns {MyCommentResponse}
+ */
+function normalizeMyComment(dto) {
+  const id = Number(dto.id ?? dto.commentId)
+  const postId = Number(dto.postId)
+  if (!Number.isFinite(id) || !Number.isFinite(postId)) {
+    throw new Error('invalid my-comment id')
+  }
+  return {
+    id,
+    postId,
+    postTitle: String(dto.postTitle ?? ''),
+    content: String(dto.content ?? ''),
+    createdAt: String(dto.createdAt ?? new Date().toISOString()),
+  }
 }
 
 /**
@@ -118,4 +143,16 @@ export async function deleteComment(postId, commentId) {
     if (shouldUseMockFallback(error)) return fetchMock()
     throw error
   }
+}
+
+/**
+ * 내가 작성한 댓글 목록 (인증 필요). 페이지네이션 없이 전체를 한 번에 반환한다.
+ * 응답은 MyCommentDto 배열(id·postId·postTitle·content·createdAt).
+ * @returns {Promise<MyCommentResponse[]>}
+ */
+export async function fetchMyComments() {
+  const { data } = await apiClient.get('/posts/comments/my')
+  const list = Array.isArray(data) ? data : data?.items
+  if (!Array.isArray(list)) throw new Error('invalid my-comment response')
+  return list.map(normalizeMyComment)
 }

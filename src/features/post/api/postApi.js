@@ -39,6 +39,7 @@ function normalizePost(dto) {
   // 백엔드 images(PostImageDto[], sortOrder 오름차순) — 첫 장을 대표 이미지로, 전체는 갤러리용으로 보존
   const rawImages = Array.isArray(dto.images) ? dto.images : []
   const images = rawImages.map((img) => ({
+    id: img.id != null ? Number(img.id) : null,
     imageUrl: String(img.imageUrl ?? ''),
     sortOrder: Number(img.sortOrder ?? 0),
   }))
@@ -186,6 +187,52 @@ export async function updatePost(postId, body) {
   }
 }
 
+/** @typedef {{ postId: number, title: string, liked: boolean }} MyLikedReview */
+
+/**
+ * 응답에서 좋아요 목록 배열을 꺼낸다 (배열 / {items:[]} 모두 방어).
+ * @param {unknown} data
+ * @returns {Array<Record<string, unknown>>}
+ */
+function unwrapLikedList(data) {
+  if (Array.isArray(data)) return data
+  if (Array.isArray(data?.items)) return data.items
+  return []
+}
+
+/**
+ * 백엔드 좋아요 항목을 화면 모델로 정규화한다.
+ * @param {Record<string, unknown>} dto
+ * @returns {MyLikedReview}
+ */
+function normalizeLikedReview(dto) {
+  return {
+    postId: Number(dto?.postId ?? dto?.id ?? 0),
+    title: String(dto?.title ?? ''),
+    liked: Boolean(dto?.liked ?? true),
+  }
+}
+
+/**
+ * 내가 좋아요한 후기 목록 (인증 필요). 페이지네이션 없이 전체를 한 번에 반환한다.
+ * @returns {Promise<MyLikedReview[]>}
+ */
+export async function fetchMyLikedPosts() {
+  const fetchMock = async () => {
+    const { mockFetchMyLikedPosts } = await import('./mockPosts')
+    return mockFetchMyLikedPosts()
+  }
+  if (USE_MOCK) return fetchMock()
+
+  try {
+    const { data } = await apiClient.get('/posts/likes/my')
+    return unwrapLikedList(data).map(normalizeLikedReview)
+  } catch (error) {
+    if (shouldUseMockFallback(error)) return fetchMock()
+    throw error
+  }
+}
+
 /**
  * 후기 삭제 (인증 필요)
  * @param {number} postId
@@ -204,4 +251,47 @@ export async function deletePost(postId) {
     if (shouldUseMockFallback(error)) return fetchMock()
     throw error
   }
+}
+
+/**
+ * 내가 작성한 후기 목록 (인증 필요). 페이지네이션 없이 전체를 최신순으로 반환한다.
+ * 백엔드 GET /api/posts/my → PostResponseDto[] (피드와 동일 형태)라 normalizePost 재사용.
+ * @returns {Promise<PostResponse[]>}
+ */
+export async function fetchMyPosts() {
+  const { data } = await apiClient.get('/posts/my')
+  return unwrapPostList(data)
+    .map(normalizePost)
+    .sort((a, b) => b.id - a.id)
+}
+
+/**
+ * 후기에 사진 추가 (인증 필요). 기존 사진 뒤에 append 된다.
+ * 백엔드: POST /api/posts/{postId}/images (multipart, files part)
+ * @param {number} postId
+ * @param {File[]} files
+ * @returns {Promise<Array<{ id: number|null, imageUrl: string, sortOrder: number }>>} 갱신된 전체 이미지 목록
+ */
+export async function uploadPostImages(postId, files) {
+  if (!files || files.length === 0) return []
+  const form = new FormData()
+  files.forEach((file) => form.append('files', file))
+  const { data } = await apiClient.post(`/posts/${postId}/images`, form)
+  const list = Array.isArray(data) ? data : []
+  return list.map((img) => ({
+    id: img.id != null ? Number(img.id) : null,
+    imageUrl: String(img.imageUrl ?? ''),
+    sortOrder: Number(img.sortOrder ?? 0),
+  }))
+}
+
+/**
+ * 후기 사진 1장 삭제 (인증 필요).
+ * 백엔드: DELETE /api/posts/{postId}/images/{imageId}
+ * @param {number} postId
+ * @param {number} imageId
+ * @returns {Promise<void>}
+ */
+export async function deletePostImage(postId, imageId) {
+  await apiClient.delete(`/posts/${postId}/images/${imageId}`)
 }
