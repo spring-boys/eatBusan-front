@@ -4,11 +4,13 @@ import { computed, ref, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { usePlaceListStore } from '../store/placeListStore'
 import { formatDistance } from '@/shared/utils/geo'
+import { useRouter } from 'vue-router'
 import { useInfiniteScroll } from '@/shared/composables/useInfiniteScroll'
 import PlaceListItem from '../components/PlaceListItem.vue'
 import PlaceFeaturedCard from '../components/PlaceFeaturedCard.vue'
 import DistrictSheet from '../components/DistrictSheet.vue'
 
+const router = useRouter()
 const store = usePlaceListStore()
 const {
   visiblePlaces,
@@ -143,6 +145,29 @@ onMounted(() => store.init())
         <v-icon icon="mdi-chevron-down" size="16" />
       </button>
     </header>
+
+    <!-- 맛집 투표 진입 (방 생성 + 코드 입장) -->
+    <section class="vote-cta" aria-label="맛집 투표">
+      <div class="vote-cta__copy">
+        <p class="vote-cta__kicker">여럿이 정할 땐</p>
+        <h2 class="vote-cta__title">맛집 투표로 한 곳만</h2>
+      </div>
+      <div class="vote-cta__actions">
+        <v-btn
+          class="vote-cta__start"
+          color="primary"
+          size="large"
+          rounded="lg"
+          prepend-icon="mdi-vote-outline"
+          @click="router.push('/vote/new')"
+        >
+          맛집 투표 시작
+        </v-btn>
+        <button class="vote-cta__join" type="button" @click="router.push('/vote/join')">
+          <v-icon icon="mdi-ticket-confirmation-outline" size="16" />코드로 입장
+        </button>
+      </div>
+    </section>
 
     <!-- 로딩 스켈레톤 -->
     <div v-if="loading">
@@ -311,6 +336,57 @@ onMounted(() => store.init())
 }
 .distpill:hover {
   background: var(--brand-tint-strong);
+}
+
+/* 맛집 투표 진입 카드 */
+.vote-cta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 16px 18px;
+  margin-bottom: 18px;
+  border-radius: 20px;
+  background: var(--brand-tint);
+  box-shadow: var(--depth-1);
+}
+.vote-cta__copy {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.vote-cta__kicker {
+  margin: 0 0 2px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #8e1b3a;
+}
+.vote-cta__title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: rgb(var(--v-theme-on-surface));
+}
+.vote-cta__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+.vote-cta__join {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 36px;
+  border: 0;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #8e1b3a;
+  cursor: pointer;
 }
 
 .featured {

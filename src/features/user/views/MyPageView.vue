@@ -18,6 +18,7 @@ const handlePrimary = async () => {
 }
 
 const menu = [
+  { icon: 'mdi-vote-outline', label: '맛집 투표 시작', to: '/vote/new' },
   { icon: 'mdi-heart-outline', label: '좋아요한 맛집', to: '/my/likes' },
   { icon: 'mdi-map-marker-check-outline', label: '내가 다녀온 맛집', to: '/my/posts' },
   { icon: 'mdi-thumb-up-outline', label: '좋아요한 리뷰', to: '/my/liked-reviews' },
