@@ -39,6 +39,7 @@ function normalizePost(dto) {
   // 백엔드 images(PostImageDto[], sortOrder 오름차순) — 첫 장을 대표 이미지로, 전체는 갤러리용으로 보존
   const rawImages = Array.isArray(dto.images) ? dto.images : []
   const images = rawImages.map((img) => ({
+    id: img.id != null ? Number(img.id) : null,
     imageUrl: String(img.imageUrl ?? ''),
     sortOrder: Number(img.sortOrder ?? 0),
   }))
@@ -262,4 +263,35 @@ export async function fetchMyPosts() {
   return unwrapPostList(data)
     .map(normalizePost)
     .sort((a, b) => b.id - a.id)
+}
+
+/**
+ * 후기에 사진 추가 (인증 필요). 기존 사진 뒤에 append 된다.
+ * 백엔드: POST /api/posts/{postId}/images (multipart, files part)
+ * @param {number} postId
+ * @param {File[]} files
+ * @returns {Promise<Array<{ id: number|null, imageUrl: string, sortOrder: number }>>} 갱신된 전체 이미지 목록
+ */
+export async function uploadPostImages(postId, files) {
+  if (!files || files.length === 0) return []
+  const form = new FormData()
+  files.forEach((file) => form.append('files', file))
+  const { data } = await apiClient.post(`/posts/${postId}/images`, form)
+  const list = Array.isArray(data) ? data : []
+  return list.map((img) => ({
+    id: img.id != null ? Number(img.id) : null,
+    imageUrl: String(img.imageUrl ?? ''),
+    sortOrder: Number(img.sortOrder ?? 0),
+  }))
+}
+
+/**
+ * 후기 사진 1장 삭제 (인증 필요).
+ * 백엔드: DELETE /api/posts/{postId}/images/{imageId}
+ * @param {number} postId
+ * @param {number} imageId
+ * @returns {Promise<void>}
+ */
+export async function deletePostImage(postId, imageId) {
+  await apiClient.delete(`/posts/${postId}/images/${imageId}`)
 }
