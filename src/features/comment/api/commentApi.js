@@ -20,7 +20,12 @@ function normalizeComment(dto) {
     id,
     content: String(dto.content ?? ''),
     createdAt: String(dto.createdAt ?? new Date().toISOString()),
-    authorNickname: dto.authorNickname ? String(dto.authorNickname) : undefined,
+    // 백엔드는 작성자 email 을 준다(닉네임 컬럼 없음). @ 앞부분만 작성자명으로 노출한다.
+    authorNickname: dto.authorNickname
+      ? String(dto.authorNickname)
+      : dto.email
+        ? String(dto.email).split('@')[0]
+        : undefined,
   }
 }
 
