@@ -21,7 +21,7 @@ const menu = [
   { icon: 'mdi-heart-outline', label: '좋아요한 맛집', to: '/my/likes' },
   { icon: 'mdi-map-marker-check-outline', label: '내가 다녀온 맛집', to: '/my/posts' },
   { icon: 'mdi-thumb-up-outline', label: '좋아요한 리뷰', to: '/my/liked-reviews' },
-  { icon: 'mdi-comment-text-outline', label: '작성한 댓글', to: null },
+  { icon: 'mdi-comment-text-outline', label: '작성한 댓글', to: '/my/comments' },
 ]
 </script>
 
