@@ -41,13 +41,9 @@ const editing = ref(false)
 
 // 내가 '투표 완료' 로 보이는지 (편집 중이면 미완료로 취급)
 const myVoteDone = computed(() => hasVoted.value && !editing.value)
-// 편집 중이면 내 한 표를 빼고 표시 (재투표 시작 즉시 완료 인원 -1)
-const displayVotedCount = computed(() =>
-  editing.value ? Math.max(0, votedCount.value - 1) : votedCount.value,
-)
-// 참여 현황 진행률 (표시용 완료 인원 / 참가자)
+// 완료 인원은 서버가 진실(STOMP TALLY_UPDATED 로 전원 동기화). 로컬 -1 임시 보정 없음.
 const votedPct = computed(() =>
-  participantCount.value ? Math.round((displayVotedCount.value / participantCount.value) * 100) : 0,
+  participantCount.value ? Math.round((votedCount.value / participantCount.value) * 100) : 0,
 )
 
 const isOpen = computed(() => room.value?.status === 'OPEN')
@@ -89,10 +85,20 @@ async function submit() {
   }
 }
 
-// 메인 버튼: 완료 상태면 재투표 시작(선택 해제 + 완료 즉시 해제), 아니면 제출
-function startReedit() {
-  editing.value = true
-  picked.value = []
+// 재투표: 서버에 취소(un-vote) 요청 → 성공 후 편집모드(선택 비움).
+// 서버가 내 ballot 삭제 + Redis 차감 + STOMP broadcast 로 전원 실시간 반영한다.
+async function startReedit() {
+  if (submitting.value) return
+  submitting.value = true
+  try {
+    await store.cancelBallot()
+    editing.value = true
+    picked.value = []
+  } catch {
+    // store.error 에 메시지가 채워진다 — 화면에서 노출
+  } finally {
+    submitting.value = false
+  }
 }
 function onPrimary() {
   if (myVoteDone.value) {
@@ -148,20 +154,20 @@ onBeforeUnmount(() => store.disconnect())
         <div class="vr__part-top">
           <span class="vr__part-label">투표 현황</span>
           <span class="vr__part-ratio">
-            <strong>{{ displayVotedCount }}</strong><span class="vr__part-total">/ {{ participantCount }}명</span>
+            <strong>{{ votedCount }}</strong><span class="vr__part-total">/ {{ participantCount }}명</span>
           </span>
         </div>
         <div
           class="vr__part-bar"
           role="progressbar"
-          :aria-valuenow="displayVotedCount"
+          :aria-valuenow="votedCount"
           :aria-valuemax="participantCount"
-          :aria-label="`참가 ${participantCount}명 중 ${displayVotedCount}명 투표 완료`"
+          :aria-label="`참가 ${participantCount}명 중 ${votedCount}명 투표 완료`"
         >
           <span class="vr__part-fill" :style="{ width: votedPct + '%' }"></span>
         </div>
         <p class="vr__part-caption">
-          참가 {{ participantCount }}명 중 {{ displayVotedCount }}명 완료 · {{ votedPct }}%
+          참가 {{ participantCount }}명 중 {{ votedCount }}명 완료 · {{ votedPct }}%
         </p>
       </section>
 

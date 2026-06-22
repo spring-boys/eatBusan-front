@@ -157,6 +157,26 @@ export const useVoteRoomStore = defineStore('voteRoom', () => {
     }
   }
 
+  /**
+   * 투표 취소(다시 투표). 서버에서 내 ballot 을 삭제하고 감소된 스냅샷으로 갱신.
+   * STOMP TALLY_UPDATED 가 전원에게 동기화하므로 로컬 임시 보정은 하지 않는다.
+   */
+  async function cancelBallot() {
+    if (!room.value) return
+    error.value = null
+    try {
+      const res = await voteApi.cancelBallot(room.value.roomPublicId)
+      myBallot.value = res.myBallot ?? []
+      if (res.tally) tally.value = res.tally
+      if (res.votedCount != null) votedCount.value = res.votedCount
+    } catch (e) {
+      if (e?.response?.status === 409) error.value = '이미 마감된 투표입니다.'
+      else if (e?.response?.status === 403) error.value = '이 방의 참가자가 아닙니다.'
+      else handleError(e, '투표를 취소하지 못했습니다.')
+      throw e
+    }
+  }
+
   /** 마감 (호스트). 응답으로 결과 반영. */
   async function close() {
     if (!room.value) return
@@ -241,6 +261,7 @@ export const useVoteRoomStore = defineStore('voteRoom', () => {
     loadDetail,
     loadResult,
     submitBallot,
+    cancelBallot,
     close,
     connectRealtime,
     disconnect,

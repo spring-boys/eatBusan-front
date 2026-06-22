@@ -31,3 +31,4 @@ dist-ssr
 
 # 최상위 경로의 prompt 폴더와 그 하위 모든 내용 제외
 /prompt/
+.omc/

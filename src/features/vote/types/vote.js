@@ -7,6 +7,9 @@
  * @property {number} candidateId
  * @property {number} placeId
  * @property {string} placeName
+ * @property {string} [address]  리스팅 카드 메타. BE 가 CandidateResponse 에 추가하면 표시 (없으면 graceful)
+ * @property {string} [category]  카테고리 칩 (옵션)
+ * @property {string} [thumbnailUrl]  썸네일 URL (옵션)
  */
 
 /**
