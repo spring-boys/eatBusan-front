@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '@/features/auth/store/authStore'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -121,6 +122,21 @@ const router = createRouter({
     },
     // 새 기능 페이지는 features/<f>/views 의 컴포넌트를 여기에 등록한다.
   ],
+})
+
+// 투표(/vote*)는 로그인 회원만. 미인증이면 refresh 쿠키로 세션 복구를 시도하고,
+// 그래도 안 되면 로그인 화면으로 보낸다(로그인 후 원래 경로로 복귀하도록 redirect 쿼리 전달).
+router.beforeEach(async (to) => {
+  const needsAuth = to.path === '/vote' || to.path.startsWith('/vote/')
+  if (!needsAuth) return true
+
+  const auth = useAuthStore()
+  if (auth.isAuthenticated) return true
+
+  const restored = await auth.restoreSession()
+  if (restored) return true
+
+  return { name: 'login', query: { redirect: to.fullPath } }
 })
 
 export default router
