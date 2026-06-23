@@ -118,6 +118,29 @@ export async function castBallot(publicId, candidateIds) {
 }
 
 /**
+ * 투표 취소(다시 투표) — DELETE /api/vote-rooms/{publicId}/votes
+ * 내 ballot 을 서버에서 삭제하고, 감소된 집계 스냅샷을 돌려준다.
+ * 이미 표가 없으면 멱등(현재 스냅샷 반환).
+ * @param {string} publicId
+ * @returns {Promise<VoteResponse>}  {myBallot: [], tally, votedCount}
+ */
+export async function cancelBallot(publicId) {
+  const fetchMock = async () => {
+    const { mockCancelBallot } = await import('./mockVote')
+    return mockCancelBallot(publicId)
+  }
+  if (USE_MOCK) return fetchMock()
+
+  try {
+    const { data } = await apiClient.delete(`${base}/${publicId}/votes`)
+    return data
+  } catch (error) {
+    if (shouldUseMockFallback(error)) return fetchMock()
+    throw error
+  }
+}
+
+/**
  * 마감 (호스트) — POST /api/vote-rooms/{publicId}/close
  * @param {string} publicId
  * @returns {Promise<VoteRoomResult>}
