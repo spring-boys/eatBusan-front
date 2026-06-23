@@ -209,6 +209,31 @@ export async function mockCastBallot(publicId, candidateIds) {
   }
 }
 
+/** DELETE /api/vote-rooms/{publicId}/votes — 내 ballot 취소(멱등) */
+export async function mockCancelBallot(publicId) {
+  await delay(220)
+  const room = rooms.get(publicId)
+  if (!room) {
+    const err = new Error('NOT_FOUND')
+    err.response = { status: 404, data: { code: 'NOT_FOUND' } }
+    throw err
+  }
+  if (room.status === 'CLOSED') {
+    const err = new Error('VOTE_ROOM_CLOSED')
+    err.response = { status: 409, data: { code: 'VOTE_ROOM_CLOSED' } }
+    throw err
+  }
+  if (room.ballots.has(MY_MEMBER_ID)) {
+    room.ballots.delete(MY_MEMBER_ID)
+    room.version += 1
+  }
+  return {
+    myBallot: [],
+    tally: computeTally(room),
+    votedCount: computeVotedCount(room),
+  }
+}
+
 /** POST /api/vote-rooms/{publicId}/close */
 export async function mockCloseVoteRoom(publicId) {
   await delay(260)

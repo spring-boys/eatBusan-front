@@ -39,8 +39,8 @@ export const useVoteRoomStore = defineStore('voteRoom', () => {
   // 호스트 여부는 백엔드가 인증 주체 기준으로 판정한 amHost 를 그대로 쓴다.
   const isHost = computed(() => !!room.value && room.value.amHost === true)
   const hasVoted = computed(() => myBallot.value.length > 0)
-  /** 참가자 수 (votedCount 의 분모) */
-  const participantCount = computed(() => participants.value.length)
+  /** 참가자 수 (votedCount 의 분모). 입장 시 PARTICIPANTS_UPDATED 로 전원에게 실시간 갱신되므로 ref 로 둔다. */
+  const participantCount = ref(0)
 
   // ── 내부 헬퍼 ──
   /** 상세 응답으로 상태 전체 갱신 */
@@ -56,6 +56,7 @@ export const useVoteRoomStore = defineStore('voteRoom', () => {
     }
     candidates.value = detail.candidates ?? []
     participants.value = detail.participants ?? []
+    participantCount.value = participants.value.length
     myBallot.value = detail.myBallot ?? []
   }
 
@@ -157,6 +158,26 @@ export const useVoteRoomStore = defineStore('voteRoom', () => {
     }
   }
 
+  /**
+   * 투표 취소(다시 투표). 서버에서 내 ballot 을 삭제하고 감소된 스냅샷으로 갱신.
+   * STOMP TALLY_UPDATED 가 전원에게 동기화하므로 로컬 임시 보정은 하지 않는다.
+   */
+  async function cancelBallot() {
+    if (!room.value) return
+    error.value = null
+    try {
+      const res = await voteApi.cancelBallot(room.value.roomPublicId)
+      myBallot.value = res.myBallot ?? []
+      if (res.tally) tally.value = res.tally
+      if (res.votedCount != null) votedCount.value = res.votedCount
+    } catch (e) {
+      if (e?.response?.status === 409) error.value = '이미 마감된 투표입니다.'
+      else if (e?.response?.status === 403) error.value = '이 방의 참가자가 아닙니다.'
+      else handleError(e, '투표를 취소하지 못했습니다.')
+      throw e
+    }
+  }
+
   /** 마감 (호스트). 응답으로 결과 반영. */
   async function close() {
     if (!room.value) return
@@ -175,6 +196,7 @@ export const useVoteRoomStore = defineStore('voteRoom', () => {
     connectVoteRoom(publicId, {
       onTally: (msg) => applyRealtime(msg),
       onClosed: (msg) => applyRealtime(msg),
+      onParticipants: (msg) => applyRealtime(msg),
       onError: () => {
         connected.value = false
       },
@@ -195,6 +217,8 @@ export const useVoteRoomStore = defineStore('voteRoom', () => {
    */
   function applyRealtime(msg) {
     if (!msg) return
+    // 총원(분모)은 집계 version 체계와 무관 — 메시지에 실려 오면 항상 반영 (PARTICIPANTS_UPDATED 등)
+    if (msg.participantCount != null) participantCount.value = msg.participantCount
     const incoming = msg.version
     const isUnknownVersion = incoming === undefined || incoming === null || incoming === 0
     // 마감(ROOM_CLOSED)은 단조·종결 상태라 stale close 가 존재할 수 없으므로
@@ -241,6 +265,7 @@ export const useVoteRoomStore = defineStore('voteRoom', () => {
     loadDetail,
     loadResult,
     submitBallot,
+    cancelBallot,
     close,
     connectRealtime,
     disconnect,
