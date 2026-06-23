@@ -14,9 +14,10 @@ let client = null
  * @param {Object} handlers
  * @param {(msg: RealtimeMessage) => void} [handlers.onTally]   TALLY_UPDATED 수신
  * @param {(msg: RealtimeMessage) => void} [handlers.onClosed]  ROOM_CLOSED 수신
+ * @param {(msg: RealtimeMessage) => void} [handlers.onParticipants]  PARTICIPANTS_UPDATED 수신(총원 갱신)
  * @param {(error: unknown) => void} [handlers.onError]
  */
-export function connectVoteRoom(publicId, { onTally, onClosed, onError } = {}) {
+export function connectVoteRoom(publicId, { onTally, onClosed, onParticipants, onError } = {}) {
   // 기존 연결이 있으면 먼저 정리 (중복 구독 방지)
   disconnect()
 
@@ -41,6 +42,7 @@ export function connectVoteRoom(publicId, { onTally, onClosed, onError } = {}) {
         }
         if (msg?.type === 'TALLY_UPDATED') onTally?.(msg)
         else if (msg?.type === 'ROOM_CLOSED') onClosed?.(msg)
+        else if (msg?.type === 'PARTICIPANTS_UPDATED') onParticipants?.(msg)
       })
     },
     onStompError: (frame) => {

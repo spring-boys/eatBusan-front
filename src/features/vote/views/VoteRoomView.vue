@@ -55,6 +55,12 @@ const winnerName = computed(() => {
   return candidates.value.find((c) => c.candidateId === id)?.placeName ?? null
 })
 
+const winnerPlaceId = computed(() => {
+  const id = room.value?.winnerCandidateId
+  if (id == null) return null
+  return candidates.value.find((c) => c.candidateId === id)?.placeId ?? null
+})
+
 // 서버의 myBallot 이 갱신되면 로컬 선택을 그에 맞춘다(재진입·복원)
 watch(
   myBallot,
@@ -173,13 +179,14 @@ onBeforeUnmount(() => store.disconnect())
 
       <!-- CLOSED: 승자 발표 -->
       <template v-if="isClosed">
-        <WinnerBanner :place-name="winnerName" class="vr__banner" />
+        <WinnerBanner :place-name="winnerName" :place-id="winnerPlaceId" class="vr__banner" />
         <section class="vr__sec">
           <h2 class="vr__sec-title">최종 결과</h2>
           <TallyBars
             :tally="tally"
             :candidates="candidates"
             :winner-candidate-id="room.winnerCandidateId"
+            linkable
           />
         </section>
         <v-btn
@@ -196,12 +203,16 @@ onBeforeUnmount(() => store.disconnect())
 
       <!-- OPEN -->
       <template v-else>
+        <!-- 후보 리스트 = 순위 선택 + 실시간 득표(한 리스트로 통합) -->
         <section class="vr__sec">
           <h2 class="vr__sec-title">
             {{ myVoteDone ? '내가 고른 순위' : '1·2·3순위를 골라요' }}
+            <span class="vr__live" aria-hidden="true"></span>
           </h2>
-          <p class="vr__sec-sub">탭하면 순위가 매겨지고, 다시 탭하면 해제돼요. (최대 3개)</p>
-          <BallotPicker v-model="picked" :candidates="candidates" />
+          <p class="vr__sec-sub">
+            탭하면 순위가 매겨져요(최대 3개). 막대는 모두의 실시간 득표예요.
+          </p>
+          <BallotPicker v-model="picked" :candidates="candidates" :tally="tally" />
         </section>
 
         <v-alert
@@ -226,14 +237,6 @@ onBeforeUnmount(() => store.disconnect())
         >
           {{ myVoteDone ? '다시 투표하기' : '투표 제출' }}
         </v-btn>
-
-        <section class="vr__sec vr__sec--tally">
-          <h2 class="vr__sec-title">
-            실시간 결과
-            <span class="vr__live" aria-hidden="true"></span>
-          </h2>
-          <TallyBars :tally="tally" :candidates="candidates" />
-        </section>
 
         <v-btn
           v-if="isHost"

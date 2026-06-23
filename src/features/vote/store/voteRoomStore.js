@@ -39,8 +39,8 @@ export const useVoteRoomStore = defineStore('voteRoom', () => {
   // 호스트 여부는 백엔드가 인증 주체 기준으로 판정한 amHost 를 그대로 쓴다.
   const isHost = computed(() => !!room.value && room.value.amHost === true)
   const hasVoted = computed(() => myBallot.value.length > 0)
-  /** 참가자 수 (votedCount 의 분모) */
-  const participantCount = computed(() => participants.value.length)
+  /** 참가자 수 (votedCount 의 분모). 입장 시 PARTICIPANTS_UPDATED 로 전원에게 실시간 갱신되므로 ref 로 둔다. */
+  const participantCount = ref(0)
 
   // ── 내부 헬퍼 ──
   /** 상세 응답으로 상태 전체 갱신 */
@@ -56,6 +56,7 @@ export const useVoteRoomStore = defineStore('voteRoom', () => {
     }
     candidates.value = detail.candidates ?? []
     participants.value = detail.participants ?? []
+    participantCount.value = participants.value.length
     myBallot.value = detail.myBallot ?? []
   }
 
@@ -195,6 +196,7 @@ export const useVoteRoomStore = defineStore('voteRoom', () => {
     connectVoteRoom(publicId, {
       onTally: (msg) => applyRealtime(msg),
       onClosed: (msg) => applyRealtime(msg),
+      onParticipants: (msg) => applyRealtime(msg),
       onError: () => {
         connected.value = false
       },
@@ -215,6 +217,8 @@ export const useVoteRoomStore = defineStore('voteRoom', () => {
    */
   function applyRealtime(msg) {
     if (!msg) return
+    // 총원(분모)은 집계 version 체계와 무관 — 메시지에 실려 오면 항상 반영 (PARTICIPANTS_UPDATED 등)
+    if (msg.participantCount != null) participantCount.value = msg.participantCount
     const incoming = msg.version
     const isUnknownVersion = incoming === undefined || incoming === null || incoming === 0
     // 마감(ROOM_CLOSED)은 단조·종결 상태라 stale close 가 존재할 수 없으므로

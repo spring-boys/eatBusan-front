@@ -2,6 +2,7 @@
 // 실시간 집계를 점수 막대로. 점수 내림차순, 최고점 강조(가넷). 후보명은 candidates 로 매핑.
 // 실시간 갱신 시 막대 width 가 부드럽게 전환된다(reduced-motion 대안 포함).
 import { computed } from 'vue'
+import { useRouter } from 'vue-router'
 
 /** @typedef {import('../types/vote.js').Candidate} Candidate */
 /** @typedef {import('../types/vote.js').TallyEntry} TallyEntry */
@@ -13,7 +14,11 @@ const props = defineProps({
   candidates: { type: Array, default: () => [] },
   /** 마감 후 승자 candidateId — 있으면 그 행을 승자로 표시 */
   winnerCandidateId: { type: Number, default: null },
+  /** true 면 각 행 터치 시 가게 상세로 이동 (마감 결과 섹션에서 사용) */
+  linkable: { type: Boolean, default: false },
 })
+
+const router = useRouter()
 
 const nameById = computed(() => {
   const m = new Map()
@@ -27,6 +32,7 @@ const rows = computed(() => {
   for (const t of props.tally) scoreById.set(t.candidateId, t.score)
   const merged = props.candidates.map((c) => ({
     candidateId: c.candidateId,
+    placeId: c.placeId,
     placeName: c.placeName,
     score: scoreById.get(c.candidateId) ?? 0,
   }))
@@ -44,11 +50,31 @@ const topScore = computed(() => rows.value[0]?.score ?? 0)
 function isLeader(r) {
   return r.score > 0 && r.score === topScore.value
 }
+
+// 마감 결과에서 행 터치 시 가게 상세로 이동 (linkable + placeId 있을 때만)
+function canLink(r) {
+  return props.linkable && r.placeId != null
+}
+function goDetail(r) {
+  if (!canLink(r)) return
+  router.push({ name: 'place-detail', params: { id: r.placeId } })
+}
 </script>
 
 <template>
   <ul class="tb" aria-label="실시간 집계">
-    <li v-for="r in rows" :key="r.candidateId" class="tb__row">
+    <li
+      v-for="r in rows"
+      :key="r.candidateId"
+      class="tb__row"
+      :class="{ 'tb__row--link': canLink(r) }"
+      :role="canLink(r) ? 'button' : null"
+      :tabindex="canLink(r) ? 0 : null"
+      :aria-label="canLink(r) ? `${r.placeName} 상세 보기` : null"
+      @click="goDetail(r)"
+      @keydown.enter="goDetail(r)"
+      @keydown.space.prevent="goDetail(r)"
+    >
       <div class="tb__head">
         <span class="tb__name" :class="{ 'tb__name--lead': isLeader(r) }">
           <v-icon
@@ -59,6 +85,13 @@ function isLeader(r) {
             class="tb__crown"
           />
           {{ nameById.get(r.candidateId) || r.placeName || '후보' }}
+          <v-icon
+            v-if="canLink(r)"
+            icon="mdi-chevron-right"
+            size="16"
+            class="tb__go"
+            aria-hidden="true"
+          />
         </span>
         <span class="tb__score" :class="{ 'tb__score--lead': isLeader(r) }">{{ r.score }}</span>
       </div>
@@ -81,6 +114,22 @@ function isLeader(r) {
   display: flex;
   flex-direction: column;
   gap: 14px;
+}
+.tb__row--link {
+  cursor: pointer;
+  border-radius: 12px;
+  padding: 6px 8px;
+  margin: -6px -8px;
+  transition: background 150ms ease;
+}
+.tb__row--link:hover,
+.tb__row--link:focus-visible {
+  background: rgba(176, 35, 74, 0.06);
+  outline: none;
+}
+.tb__go {
+  flex: 0 0 auto;
+  color: rgba(33, 26, 23, 0.3);
 }
 .tb__head {
   display: flex;
