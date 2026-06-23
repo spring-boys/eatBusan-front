@@ -14,7 +14,7 @@ export default {
     // 1) API(REST) + STOMP(WebSocket) → 백엔드로 프록시
     if (url.pathname.startsWith('/api/') || url.pathname === '/ws-stomp') {
       const target = new URL(request.url);
-      target.protocol = 'http:';      // BE는 현재 HTTP only
+      target.protocol = 'https:';     // BE가 HTTPS 적용됨 → 종단간 암호화 (HTTP→HTTPS 301 우회)
       target.hostname = BACKEND_HOST; // Host 헤더도 이 값 → nginx server_name 매칭
       target.port = '';
       // 메서드/헤더/바디 + WebSocket 업그레이드를 그대로 전달 (Cloudflare가 WS 패스스루)
