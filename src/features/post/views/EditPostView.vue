@@ -63,10 +63,15 @@ onMounted(async () => {
 function addPhotos(event) {
   const files = Array.from(event.target.files ?? [])
   event.target.value = ''
+  const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB (백엔드 multipart 한도와 일치)
   for (const file of files) {
     if (photoCount.value >= MAX_PHOTOS) {
       submitError.value = `사진은 최대 ${MAX_PHOTOS}장까지 올릴 수 있어요.`
       break
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      submitError.value = '사진은 한 장당 5MB 이하만 올릴 수 있어요.'
+      continue
     }
     newPhotos.value.push({ file, url: URL.createObjectURL(file) })
   }
